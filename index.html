@@ -4,31 +4,1251 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#000000">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Massenstrom">
   <link rel="manifest" href="/manifest.json">
+  <link rel="apple-touch-icon" href="/icon-192.svg">
   <title>Massenstrom PWA</title>
+
+  <style>
+    /* ─── Reset & Tokens ─────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:           #09090f;
+      --surface:      rgba(255,255,255,0.055);
+      --surface-hi:   rgba(255,255,255,0.10);
+      --border:       rgba(255,255,255,0.10);
+      --border-hi:    rgba(255,255,255,0.22);
+      --text:         #f0f0f5;
+      --text-2:       rgba(240,240,245,0.55);
+      --text-3:       rgba(240,240,245,0.30);
+      --accent:       #4fa3e8;
+      --accent-glow:  rgba(79,163,232,0.25);
+      --accent-2:     #e87c4f;
+      --accent-3:     #4fe8b3;
+      --pill-bg:      rgba(18,18,26,0.88);
+      --pill-active:  rgba(79,163,232,0.20);
+      --radius-sm:    10px;
+      --radius:       16px;
+      --radius-lg:    24px;
+      --blur:         blur(28px) saturate(180%);
+      --blur-sm:      blur(14px) saturate(160%);
+      --header-h:     58px;
+      --nav-h:        72px;
+      --safe-bottom:  env(safe-area-inset-bottom, 0px);
+      --safe-top:     env(safe-area-inset-top, 0px);
+      --transition:   0.28s cubic-bezier(0.4,0,0.2,1);
+    }
+
+    html, body {
+      height: 100%;
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, 'SF Pro Text', 'Helvetica Neue', sans-serif;
+      font-size: 16px;
+      line-height: 1.5;
+      overflow: hidden;
+      -webkit-text-size-adjust: 100%;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ─── Background Mesh ────────────────────────────────────── */
+    #bg-mesh {
+      position: fixed; inset: 0; z-index: 0; pointer-events: none;
+      background:
+        radial-gradient(ellipse 60% 50% at 20% 15%, rgba(79,163,232,0.12) 0%, transparent 70%),
+        radial-gradient(ellipse 50% 60% at 80% 80%, rgba(79,232,179,0.08) 0%, transparent 65%),
+        radial-gradient(ellipse 70% 40% at 60% 30%, rgba(232,124,79,0.06) 0%, transparent 60%);
+    }
+
+    /* ─── Header ─────────────────────────────────────────────── */
+    #header {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 100;
+      height: calc(var(--header-h) + var(--safe-top));
+      padding-top: var(--safe-top);
+      background: rgba(9,9,15,0.72);
+      backdrop-filter: var(--blur);
+      -webkit-backdrop-filter: var(--blur);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      padding-inline: 20px;
+      transition: transform 0.36s cubic-bezier(0.4,0,0.2,1);
+      will-change: transform;
+    }
+    #header.hidden { transform: translateY(-100%); }
+
+    .header-logo {
+      font-size: 22px;
+      font-weight: 700;
+      letter-spacing: -0.5px;
+      background: linear-gradient(135deg, var(--accent) 0%, var(--accent-3) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .header-sub {
+      margin-left: 10px;
+      font-size: 12px;
+      color: var(--text-2);
+      letter-spacing: 0.3px;
+      font-weight: 400;
+    }
+    .header-spacer { flex: 1; }
+    .header-badge {
+      font-size: 11px;
+      color: var(--text-3);
+      font-weight: 500;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+    }
+
+    /* ─── Scroll Container ───────────────────────────────────── */
+    #scroll-root {
+      position: fixed; inset: 0; z-index: 1;
+      overflow: hidden;
+    }
+
+    /* ─── Views ──────────────────────────────────────────────── */
+    #views-wrap {
+      display: flex;
+      width: 300%;
+      height: 100%;
+      transition: transform 0.42s cubic-bezier(0.4,0,0.2,1);
+      will-change: transform;
+    }
+    #views-wrap.dragging { transition: none; }
+
+    .view {
+      width: calc(100% / 3);
+      height: 100%;
+      overflow-y: auto;
+      overflow-x: hidden;
+      -webkit-overflow-scrolling: touch;
+      overscroll-behavior-y: contain;
+      padding-top: calc(var(--header-h) + var(--safe-top) + 12px);
+      padding-bottom: calc(var(--nav-h) + var(--safe-bottom) + 20px);
+      padding-inline: 16px;
+    }
+
+    /* ─── Cards / Glass ──────────────────────────────────────── */
+    .glass-card {
+      background: var(--surface);
+      backdrop-filter: var(--blur-sm);
+      -webkit-backdrop-filter: var(--blur-sm);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 20px;
+      margin-bottom: 14px;
+      transition: border-color var(--transition), background var(--transition);
+    }
+    .glass-card:focus-within {
+      border-color: rgba(79,163,232,0.35);
+      background: rgba(255,255,255,0.075);
+    }
+
+    .card-title {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-2);
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .card-title-icon {
+      width: 24px; height: 24px;
+      border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 13px;
+    }
+    .icon-heat  { background: rgba(232,124,79,0.2);  }
+    .icon-air   { background: rgba(79,232,179,0.18); }
+    .icon-pipe  { background: rgba(79,163,232,0.2);  }
+
+    /* ─── Form Controls ──────────────────────────────────────── */
+    .field-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+    .field-row.single { grid-template-columns: 1fr; }
+    .field-row.triple { grid-template-columns: 1fr 1fr 1fr; }
+
+    .field {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+    .field label {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text-2);
+      letter-spacing: 0.4px;
+      text-transform: uppercase;
+    }
+
+    .input-wrap {
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+    .input-wrap input,
+    .input-wrap select {
+      width: 100%;
+      background: rgba(255,255,255,0.06);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      color: var(--text);
+      font-size: 15px;
+      font-weight: 500;
+      padding: 10px 36px 10px 12px;
+      outline: none;
+      appearance: none;
+      -webkit-appearance: none;
+      transition: border-color var(--transition), background var(--transition);
+      font-family: inherit;
+    }
+    .input-wrap input:focus,
+    .input-wrap select:focus {
+      border-color: var(--accent);
+      background: rgba(79,163,232,0.08);
+    }
+    .input-wrap input[type="number"] {
+      -moz-appearance: textfield;
+    }
+    .input-wrap input[type="number"]::-webkit-inner-spin-button,
+    .input-wrap input[type="number"]::-webkit-outer-spin-button {
+      -webkit-appearance: none;
+    }
+    .input-unit {
+      position: absolute;
+      right: 10px;
+      font-size: 11px;
+      color: var(--text-3);
+      font-weight: 500;
+      pointer-events: none;
+      letter-spacing: 0.3px;
+    }
+    /* Chevron for select */
+    .select-wrap::after {
+      content: '⌄';
+      position: absolute;
+      right: 11px;
+      font-size: 14px;
+      color: var(--text-3);
+      pointer-events: none;
+      line-height: 1;
+    }
+
+    /* ─── Calc Button ────────────────────────────────────────── */
+    .calc-btn {
+      width: 100%;
+      padding: 13px;
+      margin-top: 14px;
+      border: none;
+      border-radius: var(--radius);
+      background: linear-gradient(135deg, var(--accent) 0%, rgba(79,163,232,0.7) 100%);
+      color: #fff;
+      font-size: 15px;
+      font-weight: 700;
+      font-family: inherit;
+      letter-spacing: 0.3px;
+      cursor: pointer;
+      transition: opacity 0.18s, transform 0.15s;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .calc-btn:active { opacity: 0.82; transform: scale(0.98); }
+
+    /* ─── Results ────────────────────────────────────────────── */
+    .result-card {
+      background: linear-gradient(135deg, rgba(79,163,232,0.12) 0%, rgba(79,232,179,0.06) 100%);
+      border: 1px solid rgba(79,163,232,0.25);
+      border-radius: var(--radius-lg);
+      padding: 18px;
+      margin-bottom: 14px;
+      opacity: 0;
+      transform: translateY(10px);
+      transition: opacity 0.3s ease, transform 0.3s ease;
+    }
+    .result-card.visible { opacity: 1; transform: translateY(0); }
+    .result-card.error-card {
+      background: linear-gradient(135deg, rgba(232,79,79,0.10) 0%, rgba(232,124,79,0.06) 100%);
+      border-color: rgba(232,79,79,0.25);
+    }
+
+    .result-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+    .result-grid.wide { grid-template-columns: 1fr; }
+
+    .result-item {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+    .result-label {
+      font-size: 10px;
+      font-weight: 600;
+      color: var(--text-2);
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+    }
+    .result-value {
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--text);
+      letter-spacing: -0.5px;
+      line-height: 1.2;
+    }
+    .result-unit {
+      font-size: 12px;
+      color: var(--text-2);
+      font-weight: 500;
+    }
+    .result-note {
+      font-size: 12px;
+      color: var(--text-2);
+      margin-top: 10px;
+      padding-top: 10px;
+      border-top: 1px solid var(--border);
+      line-height: 1.5;
+    }
+    .result-note.warn { color: rgba(232,180,79,0.9); }
+    .result-note.err  { color: rgba(232,79,79,0.9);  }
+
+    /* ─── Info Chips ─────────────────────────────────────────── */
+    .info-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 7px;
+      margin-bottom: 12px;
+    }
+    .chip {
+      background: var(--surface-hi);
+      border: 1px solid var(--border);
+      border-radius: 100px;
+      padding: 4px 11px;
+      font-size: 11px;
+      color: var(--text-2);
+      font-weight: 500;
+    }
+    .chip.accent { border-color: rgba(79,163,232,0.3); color: var(--accent); background: rgba(79,163,232,0.08); }
+
+    /* ─── Separator ──────────────────────────────────────────── */
+    .section-label {
+      font-size: 11px;
+      color: var(--text-3);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      font-weight: 600;
+      padding: 4px 0 8px;
+    }
+
+    /* ─── Toggle Row (Heizung/Kälte) ─────────────────────────── */
+    .toggle-group {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 6px;
+      margin-bottom: 14px;
+    }
+    .toggle-btn {
+      padding: 9px 6px;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border);
+      background: transparent;
+      color: var(--text-2);
+      font-size: 13px;
+      font-weight: 600;
+      font-family: inherit;
+      cursor: pointer;
+      transition: all var(--transition);
+      -webkit-tap-highlight-color: transparent;
+      text-align: center;
+    }
+    .toggle-btn.active {
+      background: rgba(79,163,232,0.18);
+      border-color: rgba(79,163,232,0.45);
+      color: var(--accent);
+    }
+
+    /* ─── Pipe Table ─────────────────────────────────────────── */
+    .pipe-table {
+      width: 100%;
+      border-collapse: separate;
+      border-spacing: 0;
+      font-size: 12px;
+      margin-top: 4px;
+    }
+    .pipe-table th {
+      padding: 8px 10px;
+      text-align: left;
+      color: var(--text-3);
+      font-weight: 600;
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      border-bottom: 1px solid var(--border);
+    }
+    .pipe-table td {
+      padding: 9px 10px;
+      color: var(--text-2);
+      border-bottom: 1px solid rgba(255,255,255,0.04);
+      font-variant-numeric: tabular-nums;
+    }
+    .pipe-table tr.rec td {
+      color: var(--text);
+      background: rgba(79,163,232,0.08);
+    }
+    .pipe-table tr.rec td:first-child {
+      border-radius: var(--radius-sm) 0 0 var(--radius-sm);
+    }
+    .pipe-table tr.rec td:last-child {
+      border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+    }
+    .dn-badge {
+      display: inline-block;
+      background: rgba(79,163,232,0.15);
+      border: 1px solid rgba(79,163,232,0.3);
+      color: var(--accent);
+      border-radius: 6px;
+      padding: 1px 7px;
+      font-weight: 700;
+      font-size: 11px;
+    }
+    .vel-warn { color: rgba(232,180,79,0.9); font-weight: 600; }
+    .vel-ok   { color: var(--accent-3); font-weight: 600; }
+    .vel-bad  { color: rgba(232,79,79,0.9); font-weight: 600; }
+
+    /* ─── Bottom Nav Pill ────────────────────────────────────── */
+    #nav-pill {
+      position: fixed;
+      bottom: calc(20px + var(--safe-bottom));
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 200;
+      background: var(--pill-bg);
+      backdrop-filter: var(--blur);
+      -webkit-backdrop-filter: var(--blur);
+      border: 1px solid var(--border-hi);
+      border-radius: 100px;
+      padding: 5px;
+      display: flex;
+      gap: 3px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.55), 0 2px 8px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.08);
+    }
+
+    .nav-item {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 8px 18px;
+      border-radius: 100px;
+      cursor: pointer;
+      transition: all 0.28s cubic-bezier(0.34,1.56,0.64,1);
+      -webkit-tap-highlight-color: transparent;
+      min-width: 70px;
+      gap: 3px;
+      user-select: none;
+    }
+    .nav-item .nav-icon { font-size: 17px; line-height: 1; transition: transform 0.28s cubic-bezier(0.34,1.56,0.64,1); }
+    .nav-item .nav-label { font-size: 10px; font-weight: 600; color: var(--text-3); letter-spacing: 0.3px; transition: color 0.2s; white-space: nowrap; }
+
+    .nav-item.active .nav-label { color: var(--accent); }
+    .nav-item.active .nav-icon  { transform: scale(1.15); }
+    .nav-item.active {
+      background: rgba(79,163,232,0.15);
+    }
+    .nav-item:active { transform: scale(0.92); }
+
+    /* Active indicator glow dot */
+    .nav-dot {
+      position: absolute;
+      top: 5px; right: 10px;
+      width: 5px; height: 5px;
+      border-radius: 50%;
+      background: var(--accent);
+      opacity: 0;
+      transition: opacity 0.2s;
+    }
+    .nav-item.active .nav-dot { opacity: 0.8; }
+
+    /* ─── Scrollbar hide ─────────────────────────────────────── */
+    .view::-webkit-scrollbar { display: none; }
+    .view { -ms-overflow-style: none; scrollbar-width: none; }
+
+    /* ─── Page title in view ─────────────────────────────────── */
+    .view-title {
+      font-size: 28px;
+      font-weight: 800;
+      letter-spacing: -1px;
+      margin-bottom: 4px;
+      line-height: 1.1;
+    }
+    .view-title span { background: linear-gradient(135deg, var(--accent), var(--accent-3)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+    .view-subtitle {
+      font-size: 13px;
+      color: var(--text-2);
+      margin-bottom: 20px;
+      line-height: 1.5;
+    }
+
+    /* ─── Divider ────────────────────────────────────────────── */
+    .divider { height: 1px; background: var(--border); margin: 6px 0 14px; }
+
+    /* ─── Animations ─────────────────────────────────────────── */
+    @keyframes fade-in-up {
+      from { opacity: 0; transform: translateY(18px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    .view > * {
+      animation: fade-in-up 0.4s ease both;
+    }
+    .view > *:nth-child(1) { animation-delay: 0.04s; }
+    .view > *:nth-child(2) { animation-delay: 0.09s; }
+    .view > *:nth-child(3) { animation-delay: 0.14s; }
+    .view > *:nth-child(4) { animation-delay: 0.19s; }
+    .view > *:nth-child(5) { animation-delay: 0.24s; }
+  </style>
 </head>
 <body>
-  <h1>Massenstrom PWA</h1>
-  <p>Flat GitHub Pages Struktur – direkt aus dem Root lauffähig.</p>
 
-  <script>
-    if ('serviceWorker' in navigator) {
-      window.addEventListener('load', () => {
-        navigator.serviceWorker.register('/sw.js').then(reg => {
-          reg.update();
+<div id="bg-mesh" aria-hidden="true"></div>
 
-          reg.addEventListener('updatefound', () => {
-            const nw = reg.installing;
-            if (!nw) return;
-            nw.addEventListener('statechange', () => {
-              if (nw.state === 'installed' && navigator.serviceWorker.controller) {
-                window.location.reload();
-              }
-            });
-          });
+<!-- ─── Header ──────────────────────────────────────────────── -->
+<header id="header">
+  <span class="header-logo">ṁ</span>
+  <span class="header-sub">Massenstrom PWA</span>
+  <span class="header-spacer"></span>
+  <span class="header-badge">HLS</span>
+</header>
+
+<!-- ─── Scroll Root / Views ─────────────────────────────────── -->
+<div id="scroll-root">
+  <div id="views-wrap">
+
+    <!-- ══════════════════════════════════════════════════════════
+         VIEW 0 – HEIZUNG / KÄLTE
+    ══════════════════════════════════════════════════════════ -->
+    <section class="view" id="view-0">
+
+      <div class="view-title"><span>Heizung</span> &amp; Kälte</div>
+      <div class="view-subtitle">Massenstrom aus Leistung und Temperaturspreizung</div>
+
+      <div class="glass-card">
+        <div class="card-title">
+          <span class="card-title-icon icon-heat">🔥</span>
+          Betriebsart
+        </div>
+        <div class="toggle-group">
+          <button class="toggle-btn active" data-mode="heizung" onclick="setMode('heizung')">🔥 Heizung</button>
+          <button class="toggle-btn" data-mode="kaelte" onclick="setMode('kaelte')">❄️ Kälte</button>
+        </div>
+
+        <div class="field-row">
+          <div class="field">
+            <label>Medium</label>
+            <div class="input-wrap select-wrap">
+              <select id="hk-medium" onchange="calcHK()">
+                <option value="water">Wasser</option>
+                <option value="glycol25">25% Glykol</option>
+                <option value="glycol33">33% Glykol</option>
+                <option value="glycol40">40% Glykol</option>
+                <option value="glycol50">50% Glykol</option>
+              </select>
+            </div>
+          </div>
+          <div class="field">
+            <label>Vorlauf Temp.</label>
+            <div class="input-wrap">
+              <input type="number" id="hk-tvl" value="70" min="-20" max="120" step="1" inputmode="decimal" onchange="calcHK()">
+              <span class="input-unit">°C</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="field-row">
+          <div class="field">
+            <label>Rücklauf Temp.</label>
+            <div class="input-wrap">
+              <input type="number" id="hk-trl" value="50" min="-20" max="120" step="1" inputmode="decimal" onchange="calcHK()">
+              <span class="input-unit">°C</span>
+            </div>
+          </div>
+          <div class="field">
+            <label>Leistung Q</label>
+            <div class="input-wrap">
+              <input type="number" id="hk-q" value="10" min="0.01" step="0.1" inputmode="decimal" onchange="calcHK()">
+              <span class="input-unit">kW</span>
+            </div>
+          </div>
+        </div>
+
+        <button class="calc-btn" onclick="calcHK()">Berechnen</button>
+      </div>
+
+      <div class="result-card" id="hk-result">
+        <div class="result-grid">
+          <div class="result-item">
+            <span class="result-label">Massenstrom ṁ</span>
+            <span class="result-value" id="hk-m-kgh">–</span>
+            <span class="result-unit">kg/h</span>
+          </div>
+          <div class="result-item">
+            <span class="result-label">Massenstrom ṁ</span>
+            <span class="result-value" id="hk-m-kgs">–</span>
+            <span class="result-unit">kg/s</span>
+          </div>
+          <div class="result-item">
+            <span class="result-label">Volumenstrom V̇</span>
+            <span class="result-value" id="hk-v-lh">–</span>
+            <span class="result-unit">l/h</span>
+          </div>
+          <div class="result-item">
+            <span class="result-label">Volumenstrom V̇</span>
+            <span class="result-value" id="hk-v-m3h">–</span>
+            <span class="result-unit">m³/h</span>
+          </div>
+        </div>
+        <div class="divider"></div>
+        <div class="result-grid">
+          <div class="result-item">
+            <span class="result-label">Spreizung ΔT</span>
+            <span class="result-value" id="hk-dt">–</span>
+            <span class="result-unit">K</span>
+          </div>
+          <div class="result-item">
+            <span class="result-label">cp Medium</span>
+            <span class="result-value" id="hk-cp">–</span>
+            <span class="result-unit">kJ/(kg·K)</span>
+          </div>
+        </div>
+        <div class="result-note" id="hk-note"></div>
+      </div>
+
+      <div class="glass-card">
+        <div class="card-title">
+          <span class="card-title-icon icon-heat">📐</span>
+          Typische Auslegungswerte
+        </div>
+        <div class="info-row">
+          <span class="chip">HK 70/50 → ΔT 20 K</span>
+          <span class="chip">HK 90/70 → ΔT 20 K</span>
+          <span class="chip accent">FBH 35/28 → ΔT 7 K</span>
+          <span class="chip">Kälte 6/12 → ΔT 6 K</span>
+          <span class="chip">Kälte 14/18 → ΔT 4 K</span>
+        </div>
+        <div class="section-label">Formel</div>
+        <div style="font-size:14px; color:var(--text-2); font-family: 'SF Mono', monospace; background: rgba(0,0,0,0.25); padding: 10px 12px; border-radius:8px; letter-spacing:0.2px;">
+          ṁ = Q / (c<sub>p</sub> · ΔT)
+        </div>
+      </div>
+
+    </section>
+
+    <!-- ══════════════════════════════════════════════════════════
+         VIEW 1 – LUFT
+    ══════════════════════════════════════════════════════════ -->
+    <section class="view" id="view-1">
+
+      <div class="view-title"><span>Luft</span>berechnung</div>
+      <div class="view-subtitle">Volumenstrom, Massenstrom und Wärmeleistung</div>
+
+      <div class="glass-card">
+        <div class="card-title">
+          <span class="card-title-icon icon-air">💨</span>
+          Eingabe
+        </div>
+
+        <div class="toggle-group">
+          <button class="toggle-btn active" data-luft="q2v" onclick="setLuftMode('q2v')">Q → V̇</button>
+          <button class="toggle-btn" data-luft="v2q" onclick="setLuftMode('v2q')">V̇ → Q</button>
+        </div>
+
+        <div class="field-row" id="luft-row-q" style="">
+          <div class="field">
+            <label>Leistung Q</label>
+            <div class="input-wrap">
+              <input type="number" id="luft-q" value="5" min="0.01" step="0.1" inputmode="decimal" onchange="calcLuft()">
+              <span class="input-unit">kW</span>
+            </div>
+          </div>
+          <div class="field">
+            <label>Spreizung ΔT</label>
+            <div class="input-wrap">
+              <input type="number" id="luft-dt" value="10" min="0.1" step="0.5" inputmode="decimal" onchange="calcLuft()">
+              <span class="input-unit">K</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="field-row" id="luft-row-v" style="display:none">
+          <div class="field">
+            <label>Volumenstrom V̇</label>
+            <div class="input-wrap">
+              <input type="number" id="luft-v" value="1000" min="1" step="10" inputmode="decimal" onchange="calcLuft()">
+              <span class="input-unit">m³/h</span>
+            </div>
+          </div>
+          <div class="field">
+            <label>Spreizung ΔT</label>
+            <div class="input-wrap">
+              <input type="number" id="luft-dt2" value="10" min="0.1" step="0.5" inputmode="decimal" onchange="calcLuft()">
+              <span class="input-unit">K</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="field-row">
+          <div class="field">
+            <label>Lufttemp. t</label>
+            <div class="input-wrap">
+              <input type="number" id="luft-temp" value="20" min="-30" max="80" step="1" inputmode="decimal" onchange="calcLuft()">
+              <span class="input-unit">°C</span>
+            </div>
+          </div>
+          <div class="field">
+            <label>Druck p</label>
+            <div class="input-wrap">
+              <input type="number" id="luft-p" value="101325" min="80000" max="120000" step="100" inputmode="decimal" onchange="calcLuft()">
+              <span class="input-unit">Pa</span>
+            </div>
+          </div>
+        </div>
+
+        <button class="calc-btn" onclick="calcLuft()">Berechnen</button>
+      </div>
+
+      <div class="result-card" id="luft-result">
+        <div class="result-grid">
+          <div class="result-item">
+            <span class="result-label">Volumenstrom V̇</span>
+            <span class="result-value" id="luft-res-v">–</span>
+            <span class="result-unit">m³/h</span>
+          </div>
+          <div class="result-item">
+            <span class="result-label">Massenstrom ṁ</span>
+            <span class="result-value" id="luft-res-m">–</span>
+            <span class="result-unit">kg/h</span>
+          </div>
+          <div class="result-item">
+            <span class="result-label">Leistung Q</span>
+            <span class="result-value" id="luft-res-q">–</span>
+            <span class="result-unit">kW</span>
+          </div>
+          <div class="result-item">
+            <span class="result-label">Luftdichte ρ</span>
+            <span class="result-value" id="luft-res-rho">–</span>
+            <span class="result-unit">kg/m³</span>
+          </div>
+        </div>
+        <div class="result-note" id="luft-note"></div>
+      </div>
+
+      <div class="glass-card">
+        <div class="card-title">
+          <span class="card-title-icon icon-air">📐</span>
+          Formeln &amp; Kennwerte
+        </div>
+        <div class="info-row">
+          <span class="chip">ρ ≈ 1,204 kg/m³ bei 20°C</span>
+          <span class="chip accent">cp = 1,006 kJ/(kg·K)</span>
+          <span class="chip">V̇ = ṁ / ρ</span>
+        </div>
+        <div class="section-label">Formeln</div>
+        <div style="font-size:13px; color:var(--text-2); font-family: 'SF Mono', monospace; background: rgba(0,0,0,0.25); padding: 10px 12px; border-radius:8px; line-height:1.9;">
+          ρ = p / (R · T) &nbsp;|&nbsp; R = 287,058 J/(kg·K)<br>
+          ṁ = Q / (c<sub>p</sub> · ΔT)<br>
+          V̇ = ṁ / ρ
+        </div>
+      </div>
+
+    </section>
+
+    <!-- ══════════════════════════════════════════════════════════
+         VIEW 2 – ROHR
+    ══════════════════════════════════════════════════════════ -->
+    <section class="view" id="view-2">
+
+      <div class="view-title"><span>Rohr</span>auslegung</div>
+      <div class="view-subtitle">Darcy-Weisbach · Colebrook-White · DIN EN 10255</div>
+
+      <div class="glass-card">
+        <div class="card-title">
+          <span class="card-title-icon icon-pipe">⚙️</span>
+          Randbedingungen
+        </div>
+
+        <div class="field-row">
+          <div class="field">
+            <label>Massenstrom ṁ</label>
+            <div class="input-wrap">
+              <input type="number" id="rohr-m" value="500" min="1" step="10" inputmode="decimal" onchange="calcRohr()">
+              <span class="input-unit">kg/h</span>
+            </div>
+          </div>
+          <div class="field">
+            <label>Medium</label>
+            <div class="input-wrap select-wrap">
+              <select id="rohr-medium" onchange="calcRohr()">
+                <option value="water20">Wasser 20°C</option>
+                <option value="water70">Wasser 70°C</option>
+                <option value="water90">Wasser 90°C</option>
+                <option value="glycol25">25% Glykol</option>
+                <option value="glycol40">40% Glykol</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <div class="field-row">
+          <div class="field">
+            <label>Rohrmaterial</label>
+            <div class="input-wrap select-wrap">
+              <select id="rohr-material" onchange="calcRohr()">
+                <option value="stahl">Stahl (DIN EN 10255)</option>
+                <option value="edelstahl">Edelstahl</option>
+                <option value="kupfer">Kupfer (DIN EN 1057)</option>
+                <option value="pe">PE-Xc / PE-RT</option>
+              </select>
+            </div>
+          </div>
+          <div class="field">
+            <label>Rohrlänge L</label>
+            <div class="input-wrap">
+              <input type="number" id="rohr-l" value="20" min="0.1" step="1" inputmode="decimal" onchange="calcRohr()">
+              <span class="input-unit">m</span>
+            </div>
+          </div>
+        </div>
+
+        <button class="calc-btn" onclick="calcRohr()">DN-Tabelle berechnen</button>
+      </div>
+
+      <div class="result-card" id="rohr-result">
+        <div class="result-item result-grid wide" style="margin-bottom:12px;">
+          <div>
+            <span class="result-label">Empfehlung</span>
+            <span class="result-value" id="rohr-rec-dn">–</span>
+          </div>
+        </div>
+        <div class="result-grid">
+          <div class="result-item">
+            <span class="result-label">Geschw. v</span>
+            <span class="result-value" id="rohr-rec-v">–</span>
+            <span class="result-unit">m/s</span>
+          </div>
+          <div class="result-item">
+            <span class="result-label">R spez.</span>
+            <span class="result-value" id="rohr-rec-r">–</span>
+            <span class="result-unit">Pa/m</span>
+          </div>
+          <div class="result-item">
+            <span class="result-label">ΔpR gesamt</span>
+            <span class="result-value" id="rohr-rec-dp">–</span>
+            <span class="result-unit">Pa</span>
+          </div>
+          <div class="result-item">
+            <span class="result-label">Re-Zahl</span>
+            <span class="result-value" id="rohr-rec-re">–</span>
+            <span class="result-unit">–</span>
+          </div>
+        </div>
+        <div class="result-note" id="rohr-note"></div>
+      </div>
+
+      <div class="glass-card" id="rohr-table-card" style="display:none; padding:0; overflow:hidden;">
+        <div style="padding:14px 16px 8px; border-bottom:1px solid var(--border);">
+          <div class="card-title" style="margin-bottom:0;">
+            <span class="card-title-icon icon-pipe">📊</span>
+            DN-Übersicht
+          </div>
+        </div>
+        <div style="overflow-x:auto; padding:0 4px 8px;">
+          <table class="pipe-table" id="rohr-dn-table">
+            <thead>
+              <tr>
+                <th>DN</th>
+                <th>di (mm)</th>
+                <th>v (m/s)</th>
+                <th>R (Pa/m)</th>
+                <th>ΔpR (Pa)</th>
+                <th>Bew.</th>
+              </tr>
+            </thead>
+            <tbody id="rohr-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="glass-card">
+        <div class="card-title">
+          <span class="card-title-icon icon-pipe">ℹ️</span>
+          Auslegungs&shy;kriterien
+        </div>
+        <div class="info-row">
+          <span class="chip accent">v: 0,5–1,5 m/s</span>
+          <span class="chip">R: 100–300 Pa/m</span>
+          <span class="chip">ε Stahl ≈ 0,046 mm</span>
+          <span class="chip">ε Kupfer ≈ 0,0015 mm</span>
+        </div>
+      </div>
+
+    </section>
+
+  </div><!-- /views-wrap -->
+</div><!-- /scroll-root -->
+
+<!-- ─── Nav Pill ─────────────────────────────────────────────── -->
+<nav id="nav-pill" aria-label="Hauptnavigation">
+  <div class="nav-item active" data-view="0" onclick="goTo(0)" role="button" tabindex="0">
+    <span class="nav-dot"></span>
+    <span class="nav-icon">🔥</span>
+    <span class="nav-label">Heizung</span>
+  </div>
+  <div class="nav-item" data-view="1" onclick="goTo(1)" role="button" tabindex="0">
+    <span class="nav-dot"></span>
+    <span class="nav-icon">💨</span>
+    <span class="nav-label">Luft</span>
+  </div>
+  <div class="nav-item" data-view="2" onclick="goTo(2)" role="button" tabindex="0">
+    <span class="nav-dot"></span>
+    <span class="nav-icon">⚙️</span>
+    <span class="nav-label">Rohr</span>
+  </div>
+</nav>
+
+<script>
+/* ═══════════════════════════════════════════════════════════════
+   NAVIGATION  –  Drag-Switcher + Pill
+═══════════════════════════════════════════════════════════════ */
+const wrap  = document.getElementById('views-wrap');
+const items = document.querySelectorAll('.nav-item');
+let current = 0;
+
+function goTo(idx) {
+  current = Math.max(0, Math.min(2, idx));
+  wrap.classList.remove('dragging');
+  wrap.style.transform = `translateX(${-current * 100/3}%)`;
+  items.forEach((el,i) => el.classList.toggle('active', i === current));
+  // Reset scroll positions
+  document.querySelectorAll('.view').forEach((v,i) => { if(i!==current) v.scrollTop=0; });
+}
+
+/* Drag / Swipe */
+let startX=0, startY=0, isDrag=false, dragAxis=null;
+const threshold = 50, angleLimit = 35;
+
+function onTouchStart(e) {
+  startX = e.touches[0].clientX;
+  startY = e.touches[0].clientY;
+  isDrag = false; dragAxis = null;
+  wrap.classList.add('dragging');
+}
+function onTouchMove(e) {
+  const dx = e.touches[0].clientX - startX;
+  const dy = e.touches[0].clientY - startY;
+  if (!dragAxis) {
+    dragAxis = Math.abs(dx) > Math.abs(dy) ? 'x' : 'y';
+  }
+  if (dragAxis !== 'x') { wrap.classList.remove('dragging'); return; }
+  e.preventDefault();
+  isDrag = true;
+  const base = -current * 100/3;
+  const pct  = dx / wrap.parentElement.offsetWidth * 100 / 3;
+  const resistance = (current===0&&dx>0)||(current===2&&dx<0) ? 0.25 : 1;
+  wrap.style.transform = `translateX(calc(${base}% + ${dx*resistance}px))`;
+}
+function onTouchEnd(e) {
+  if (!isDrag || dragAxis !== 'x') { wrap.classList.remove('dragging'); return; }
+  const dx = e.changedTouches[0].clientX - startX;
+  if (Math.abs(dx) > threshold) goTo(current + (dx < 0 ? 1 : -1));
+  else goTo(current);
+}
+
+wrap.addEventListener('touchstart', onTouchStart, { passive: true });
+wrap.addEventListener('touchmove',  onTouchMove,  { passive: false });
+wrap.addEventListener('touchend',   onTouchEnd,   { passive: true });
+
+/* Keyboard nav for nav items */
+items.forEach(el => {
+  el.addEventListener('keydown', e => {
+    if (e.key==='Enter'||e.key===' ') { e.preventDefault(); goTo(+el.dataset.view); }
+  });
+});
+
+/* ─── Auto-hide Header ──────────────────────────────────────── */
+const header = document.getElementById('header');
+let lastSY = 0;
+document.querySelectorAll('.view').forEach(view => {
+  view.addEventListener('scroll', () => {
+    const sy = view.scrollTop;
+    header.classList.toggle('hidden', sy > lastSY && sy > 60);
+    lastSY = sy;
+  }, { passive: true });
+});
+
+/* ═══════════════════════════════════════════════════════════════
+   MEDIUM DATA
+═══════════════════════════════════════════════════════════════ */
+const MEDIA_HK = {
+  water:    { cp:4.182, rho:999, name:'Wasser' },
+  glycol25: { cp:3.930, rho:1035, name:'25% Glykol' },
+  glycol33: { cp:3.760, rho:1048, name:'33% Glykol' },
+  glycol40: { cp:3.600, rho:1060, name:'40% Glykol' },
+  glycol50: { cp:3.340, rho:1075, name:'50% Glykol' },
+};
+
+const MEDIA_ROHR = {
+  water20:  { rho:998.2,  nu:1.004e-6, name:'Wasser 20°C' },
+  water70:  { rho:977.8,  nu:0.415e-6, name:'Wasser 70°C' },
+  water90:  { rho:965.3,  nu:0.326e-6, name:'Wasser 90°C' },
+  glycol25: { rho:1035,   nu:2.100e-6, name:'25% Glykol' },
+  glycol40: { rho:1060,   nu:4.200e-6, name:'40% Glykol' },
+};
+
+/* ─── Pipe sizes [DN, di_mm, da_mm] ─────────────────────────── */
+const PIPES = {
+  stahl:     [[15,16.1,21.3],[20,21.7,26.9],[25,27.3,33.7],[32,36.0,42.4],[40,41.8,48.3],[50,53.1,60.3],[65,68.8,76.1],[80,80.8,88.9],[100,105.3,114.3]],
+  edelstahl: [[15,16.1,21.3],[20,21.7,26.9],[25,27.3,33.7],[32,36.0,42.4],[40,41.8,48.3],[50,53.1,60.3],[65,68.8,76.1],[80,80.8,88.9],[100,105.3,114.3]],
+  kupfer:    [[12,10.0,12.0],[15,13.0,15.0],[18,16.0,18.0],[22,20.0,22.0],[28,26.0,28.0],[35,33.0,35.0],[42,40.0,42.0],[54,52.0,54.0],[76.1,74.0,76.1]],
+  pe:        [[16,11.6,16.0],[20,14.4,20.0],[25,18.0,25.0],[32,23.2,32.0],[40,29.0,40.0],[50,36.2,50.0],[63,45.8,63.0],[75,54.4,75.0],[90,65.4,90.0]],
+};
+const ROUGHNESS = { stahl:0.046e-3, edelstahl:0.015e-3, kupfer:0.0015e-3, pe:0.007e-3 };
+
+/* ═══════════════════════════════════════════════════════════════
+   HK MODE TOGGLE
+═══════════════════════════════════════════════════════════════ */
+let hkMode = 'heizung';
+function setMode(m) {
+  hkMode = m;
+  document.querySelectorAll('[data-mode]').forEach(b => b.classList.toggle('active', b.dataset.mode===m));
+  calcHK();
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   CALC: HEIZUNG / KÄLTE
+═══════════════════════════════════════════════════════════════ */
+function calcHK() {
+  const Q   = parseFloat(document.getElementById('hk-q').value);
+  const tvl = parseFloat(document.getElementById('hk-tvl').value);
+  const trl = parseFloat(document.getElementById('hk-trl').value);
+  const med = document.getElementById('hk-medium').value;
+  const m   = MEDIA_HK[med];
+
+  const card = document.getElementById('hk-result');
+  const note = document.getElementById('hk-note');
+
+  if (isNaN(Q)||isNaN(tvl)||isNaN(trl)||Q<=0) {
+    card.className='result-card'; return;
+  }
+  const dT = Math.abs(tvl - trl);
+  if (dT < 0.1) {
+    card.className='result-card error-card visible';
+    note.innerHTML='<span class="err">⚠ Spreizung zu gering (ΔT < 0,1 K)</span>'; return;
+  }
+
+  const mKgs  = Q / (m.cp * dT);           // kg/s
+  const mKgh  = mKgs * 3600;               // kg/h
+  const vM3h  = mKgh / m.rho;              // m³/h
+  const vLh   = vM3h * 1000;               // l/h
+
+  document.getElementById('hk-m-kgh').textContent = fmt(mKgh, 1);
+  document.getElementById('hk-m-kgs').textContent = fmt(mKgs, 4);
+  document.getElementById('hk-v-lh').textContent  = fmt(vLh, 1);
+  document.getElementById('hk-v-m3h').textContent = fmt(vM3h, 3);
+  document.getElementById('hk-dt').textContent    = fmt(dT, 1);
+  document.getElementById('hk-cp').textContent    = m.cp.toFixed(3);
+
+  let notes = [];
+  if (dT < 5)  notes.push('⚠ Kleine Spreizung → großer Massenstrom (Rohrnetz überprüfen)');
+  if (dT > 30) notes.push('ℹ Hohe Spreizung – cp-Änderung berücksichtigen');
+  if (mKgh > 10000) notes.push('ℹ Großer Massenstrom – Pumpenauslegung erforderlich');
+
+  note.innerHTML = notes.join('<br>');
+  note.className = 'result-note' + (notes.some(n=>n.startsWith('⚠'))?'warn':'');
+  card.className = 'result-card visible';
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   LUFT MODE TOGGLE
+═══════════════════════════════════════════════════════════════ */
+let luftMode = 'q2v';
+function setLuftMode(m) {
+  luftMode = m;
+  document.querySelectorAll('[data-luft]').forEach(b => b.classList.toggle('active', b.dataset.luft===m));
+  document.getElementById('luft-row-q').style.display = m==='q2v' ? '' : 'none';
+  document.getElementById('luft-row-v').style.display = m==='v2q' ? '' : 'none';
+  calcLuft();
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   CALC: LUFT
+═══════════════════════════════════════════════════════════════ */
+function calcLuft() {
+  const T   = parseFloat(document.getElementById('luft-temp').value) + 273.15;
+  const p   = parseFloat(document.getElementById('luft-p').value);
+  const R   = 287.058;
+  const cpL = 1.006; // kJ/(kg·K)
+
+  const rho = p / (R * T);
+
+  const card = document.getElementById('luft-result');
+  const note = document.getElementById('luft-note');
+
+  let Q, dT, Vm3h, mKgh;
+
+  if (luftMode === 'q2v') {
+    Q  = parseFloat(document.getElementById('luft-q').value);
+    dT = parseFloat(document.getElementById('luft-dt').value);
+    if (isNaN(Q)||isNaN(dT)||Q<=0||dT<=0) { card.className='result-card'; return; }
+    mKgh  = Q / (cpL * dT) * 3600;
+    Vm3h  = mKgh / rho;
+  } else {
+    Vm3h = parseFloat(document.getElementById('luft-v').value);
+    dT   = parseFloat(document.getElementById('luft-dt2').value);
+    if (isNaN(Vm3h)||isNaN(dT)||Vm3h<=0||dT<=0) { card.className='result-card'; return; }
+    mKgh = Vm3h * rho;
+    Q    = mKgh / 3600 * cpL * dT;
+  }
+
+  document.getElementById('luft-res-v').textContent   = fmt(Vm3h, 0);
+  document.getElementById('luft-res-m').textContent   = fmt(mKgh, 1);
+  document.getElementById('luft-res-q').textContent   = fmt(Q, 2);
+  document.getElementById('luft-res-rho').textContent = fmt(rho, 4);
+
+  let notes = [];
+  if (Vm3h > 100000) notes.push('ℹ Sehr großer Volumenstrom – Kanalquerschnitte prüfen');
+  if (dT > 20) notes.push('⚠ Hohe Spreizung – Kondensationsgefahr prüfen');
+  if (rho < 1.1) notes.push('ℹ Niedrige Dichte (hohe Temp. oder geringe Höhenlage)');
+
+  note.innerHTML = notes.join('<br>');
+  card.className = 'result-card visible';
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   CALC: ROHR (Darcy-Weisbach + Colebrook-White)
+═══════════════════════════════════════════════════════════════ */
+function calcRohr() {
+  const mKgh  = parseFloat(document.getElementById('rohr-m').value);
+  const L     = parseFloat(document.getElementById('rohr-l').value);
+  const mat   = document.getElementById('rohr-material').value;
+  const med   = document.getElementById('rohr-medium').value;
+
+  const card  = document.getElementById('rohr-result');
+  const table = document.getElementById('rohr-table-card');
+  const note  = document.getElementById('rohr-note');
+
+  if (isNaN(mKgh)||mKgh<=0||isNaN(L)||L<=0) { card.className='result-card'; table.style.display='none'; return; }
+
+  const mKgs  = mKgh / 3600;
+  const { rho, nu } = MEDIA_ROHR[med];
+  const eps   = ROUGHNESS[mat];
+  const pipes = PIPES[mat];
+
+  const rows  = pipes.map(([DN, di_mm]) => {
+    const di = di_mm / 1000;
+    const A  = Math.PI * di * di / 4;
+    const v  = mKgs / (rho * A);
+    const Re = v * di / nu;
+    const lam = colebrook(Re, eps, di);
+    const R  = lam * (1/di) * (rho * v * v / 2);   // Pa/m
+    const dP = R * L;
+    const ok = v>=0.3 && v<=1.5 && R>=50 && R<=300;
+    const warn = v>1.5||R>300;
+    return { DN, di_mm, v, Re, R, dP, ok, warn };
+  });
+
+  // Best recommendation: ok preferred, else smallest v>0.3
+  let rec = rows.find(r=>r.ok) || rows.find(r=>r.v>=0.3) || rows[rows.length-1];
+
+  document.getElementById('rohr-rec-dn').innerHTML = `<span class="dn-badge">DN ${rec.DN}</span>`;
+  document.getElementById('rohr-rec-v').textContent  = fmt(rec.v, 2);
+  document.getElementById('rohr-rec-r').textContent  = fmt(rec.R, 1);
+  document.getElementById('rohr-rec-dp').textContent = fmt(rec.dP, 0);
+  document.getElementById('rohr-rec-re').textContent = fmt(rec.Re, 0);
+
+  let notes = [];
+  if (rec.v < 0.3) notes.push('⚠ v < 0,3 m/s – Entlüftungsprobleme möglich');
+  if (rec.v > 1.5) notes.push('⚠ v > 1,5 m/s – Geräusche und Erosion möglich');
+  if (rec.R > 300) notes.push('⚠ R > 300 Pa/m – Druckverlust erhöht');
+  if (rec.Re < 2300) notes.push('ℹ Laminare Strömung (Re < 2300)');
+  note.innerHTML = notes.join('<br>');
+  card.className = 'result-card visible';
+
+  // Build table
+  const tbody = document.getElementById('rohr-tbody');
+  tbody.innerHTML = rows.map(r => {
+    const isRec = r.DN === rec.DN;
+    const velClass = r.v<0.3 ? 'vel-warn' : r.v>1.5 ? 'vel-bad' : 'vel-ok';
+    const bew = r.ok ? '✅' : r.v>2 ? '🔴' : '🟡';
+    return `<tr class="${isRec?'rec':''}">
+      <td><span class="dn-badge">DN ${r.DN}</span></td>
+      <td>${r.di_mm.toFixed(1)}</td>
+      <td class="${velClass}">${fmt(r.v,2)}</td>
+      <td>${fmt(r.R,0)}</td>
+      <td>${fmt(r.dP,0)}</td>
+      <td>${bew}</td>
+    </tr>`;
+  }).join('');
+
+  table.style.display = '';
+}
+
+/* ─── Colebrook-White (iterativ, ~6 Iterationen) ─────────────── */
+function colebrook(Re, eps, D) {
+  if (Re < 1) return 64;
+  if (Re < 2300) return 64 / Re; // laminar
+  const r = eps / (3.7 * D);
+  let lam = 0.02;
+  for (let i=0; i<8; i++) {
+    lam = Math.pow(-2*Math.log10(r + 2.51/(Re*Math.sqrt(lam))), -2);
+  }
+  return lam;
+}
+
+/* ─── Format helper ──────────────────────────────────────────── */
+function fmt(v, dec) {
+  if (!isFinite(v)) return '–';
+  return v.toLocaleString('de-DE', { minimumFractionDigits: dec, maximumFractionDigits: dec });
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   INIT
+═══════════════════════════════════════════════════════════════ */
+calcHK();
+calcLuft();
+calcRohr();
+goTo(0);
+
+/* ─── Service Worker ─────────────────────────────────────────── */
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js').then(reg => {
+      reg.update();
+      reg.addEventListener('updatefound', () => {
+        const nw = reg.installing;
+        if (!nw) return;
+        nw.addEventListener('statechange', () => {
+          if (nw.state==='installed' && navigator.serviceWorker.controller) {
+            window.location.reload();
+          }
         });
       });
-    }
-  </script>
+    }).catch(err => console.warn('SW registration failed:', err));
+  });
+}
+</script>
 </body>
 </html>
