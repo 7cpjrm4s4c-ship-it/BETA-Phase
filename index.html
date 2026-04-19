@@ -544,7 +544,7 @@ input[type=number]::-webkit-outer-spin-button { -webkit-appearance:none; }
 * { min-width: 0; }
 .gc, .out-card, .gc-h, .gc-c, .gc-a { overflow: hidden; }
 #tab-flow, #tab-luft, #tab-pipe, #tab-unit { overflow-x: hidden; max-width: 100%; }
-#tab-hx { overflow-x: clip; max-width: 100%; }
+#tab-hx { overflow-x: clip; max-width: 100%; background: var(--bg, #000); }
 
 /* Unit converter */
 /* Category select styled like gl-sel but green accent */
@@ -598,13 +598,14 @@ input[type=number]::-webkit-outer-spin-button { -webkit-appearance:none; }
   width:100%;
   background:white;
   border-radius:12px;
-  border:1px solid rgba(255,255,255,.14);
-  padding:0;margin:0;
-  overflow:visible;
+  border:1px solid rgba(255,255,255,.20);
+  padding:4px;margin:0;
+  overflow:hidden;
   position:relative;
   box-sizing:border-box;
   transform:none;
   clip-path:none;
+  z-index:1;
 }
 
 
@@ -617,11 +618,11 @@ input[type=number]::-webkit-outer-spin-button { -webkit-appearance:none; }
 .hx-badge{margin-left:auto;flex-shrink:0;background:rgba(167,139,250,.14);border:1px solid rgba(167,139,250,.32);color:#c4b5fd;font-size:9px;font-weight:700;padding:3px 8px;border-radius:6px;letter-spacing:.07em}
 
 /* ── Scroll ── */
-.hx-scroll{flex:1;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch}
+.hx-scroll{flex:1;overflow-y:auto;overflow-x:clip;-webkit-overflow-scrolling:touch;background:var(--bg,#000)}
 .hx-scroll::-webkit-scrollbar{display:none}
 
 /* ── Glass card ── */
-.hx-gc{background:rgba(255,255,255,.07);border:1px solid var(--bm);border-radius:var(--rL);padding:20px;position:relative;overflow:hidden;box-shadow:0 2px 0 rgba(255,255,255,.06) inset,0 8px 32px rgba(0,0,0,.5)}
+.hx-gc{background:rgba(255,255,255,.10);border:1px solid var(--bm);border-radius:var(--rL);padding:20px;position:relative;overflow:hidden;box-shadow:0 2px 0 rgba(255,255,255,.06) inset,0 8px 32px rgba(0,0,0,.5)}
 .hx-gc::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(255,255,255,.22) 50%,transparent);pointer-events:none}
 
 /* ── Typography ── */
@@ -2316,26 +2317,25 @@ function fromCvs(cx,cy){return[Math.max(XN,Math.min(XX,XN+(cx-M.l)/dW()*(XX-XN))
 function inD(cx,cy){return cx>=M.l&&cx<=M.l+dW()&&cy>=M.t&&cy<=M.t+dH()}
 
 function hxResizeCvs(){
-  const wrap = cvs.parentElement;
-  if(!wrap) return;
-  // Guard: clientWidth=0 means tab is still hidden — skip, rAF will retry
-  const cw = Math.floor(wrap.clientWidth);
-  if(cw < 10) return;
-  const w = cw;
-  const h = Math.round(w * 0.78);
+  // Measure from the tab root — always has correct clientWidth after display:block
+  var tabEl = document.getElementById('tab-hx');
+  if(!tabEl || tabEl.clientWidth < 10) return;
+  // Subtract content-area horizontal padding (14px * 2 = 28px)
+  var w = Math.max(280, Math.floor(tabEl.clientWidth) - 28);
+  var h = Math.round(w * 0.75);
   CW = w; CH = h;
-  // Set explicit dimensions on BOTH canvas and wrapper
+  var wrap = cvs.parentElement;
+  var shell = wrap ? wrap.parentElement : null;
+  // CSS sizes
   cvs.style.width   = w + 'px';
   cvs.style.height  = h + 'px';
-  wrap.style.width  = w + 'px';
-  wrap.style.height = h + 'px';
-  // Also set on shell (grandparent)
-  if(wrap.parentElement) wrap.parentElement.style.minHeight = h + 'px';
-  // Bitmap size
-  const dpr = Math.min(window.devicePixelRatio || 1, 2);
+  if(wrap) { wrap.style.width = w + 'px'; wrap.style.height = h + 'px'; }
+  if(shell){ shell.style.minHeight = h + 'px'; }
+  // Bitmap
+  var dpr = Math.min(window.devicePixelRatio || 1, 2);
   cvs.width  = Math.round(w * dpr);
   cvs.height = Math.round(h * dpr);
-  // Full matrix reset before scale — prevents accumulation
+  // Full reset — prevents ctx.scale() accumulation
   ctx.setTransform(1, 0, 0, 1, 0, 0);
   ctx.scale(dpr, dpr);
   ctx.imageSmoothingEnabled = true;
