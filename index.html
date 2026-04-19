@@ -612,10 +612,10 @@ input[type=number]::-webkit-outer-spin-button { -webkit-appearance:none; }
 
 /* ── Typography ── */
 .hx-slbl{font-size:9px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--t3);margin-bottom:14px}
-.hx-si-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.hx-si-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px 16px}
 .hx-si-item{display:flex;flex-direction:column;gap:3px}
-.hx-si-k{font-size:9px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--t3)}
-.hx-si-v{font-family:var(--fm);font-size:13px;font-weight:700;color:#c4b5fd;line-height:1}
+.hx-si-k{font-size:8px;font-weight:700;letter-spacing:.10em;text-transform:uppercase;color:var(--t3);margin-bottom:3px}
+.hx-si-v{font-family:var(--fm);font-size:14px;font-weight:700;color:#c4b5fd;line-height:1.2}
 .hx-si-v.dim{color:var(--t4)}
 
 /* ── Mode tabs ── */
@@ -657,7 +657,7 @@ input[type=number]::-webkit-outer-spin-button { -webkit-appearance:none; }
 .hx-pbtn.sel[data-p="dreheat"]{border-color:rgba(255,214,10,.45);background:rgba(255,214,10,.08);color:#ffd60a}
 
 /* ── State list ── */
-.hx-se{display:flex;align-items:center;gap:10px;padding:12px 14px;border-radius:var(--r);background:var(--gm);border:1px solid var(--bs);margin-bottom:8px;cursor:pointer;transition:all .15s}
+.hx-se{display:flex;align-items:flex-start;gap:10px;padding:12px 14px;border-radius:var(--r);background:var(--gm);border:1px solid var(--bs);margin-bottom:8px;cursor:pointer;transition:all .15s}
 .hx-se:last-child{margin-bottom:0}
 .hx-se.act{border-color:rgba(167,139,250,.45);background:rgba(167,139,250,.08)}
 .hx-se-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0}
@@ -673,11 +673,11 @@ input[type=number]::-webkit-outer-spin-button { -webkit-appearance:none; }
 #tip{position:absolute;background:rgba(4,12,28,.96);border:1px solid rgba(255,255,255,.18);border-radius:10px;padding:9px 13px;font-size:11px;font-family:var(--fm);pointer-events:none;display:none;z-index:20;line-height:1.8;backdrop-filter:blur(12px)}
 
 /* ── Error / info ── */
-.hx-errmsg{color:#ff453a;font-size:11px;margin-top:8px;padding:7px 10px;background:rgba(255,69,58,.07);border:1px solid rgba(255,69,58,.22);border-radius:10px;display:none;line-height:1.5}
-.hx-infomsg{color:#34d399;font-size:11px;margin-top:8px;padding:7px 10px;background:rgba(52,211,153,.07);border:1px solid rgba(52,211,153,.22);border-radius:10px;display:none;line-height:1.5}
+.hx-errmsg{color:#ff453a;font-size:12px;margin-top:10px;padding:10px 14px;background:rgba(255,69,58,.07);border:1px solid rgba(255,69,58,.22);border-radius:12px;display:none;line-height:1.5}
+.hx-infomsg{color:#34d399;font-size:12px;margin-top:10px;padding:10px 14px;background:rgba(52,211,153,.07);border:1px solid rgba(52,211,153,.22);border-radius:12px;display:none;line-height:1.5}
 
 /* ── Chain ── */
-.hx-ci{display:flex;align-items:center;gap:6px;font-size:11px;padding:6px 10px;border-radius:8px;background:rgba(255,255,255,.04);margin-bottom:4px;font-family:var(--fm)}
+.hx-ci{display:flex;align-items:center;gap:8px;font-size:12px;padding:8px 12px;border-radius:10px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);margin-bottom:6px;font-family:var(--fm)}
 
 /* ── Bottom sheet ── */
 .hx-overlay{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:100;opacity:0;pointer-events:none;transition:opacity .3s;backdrop-filter:blur(4px)}
@@ -1562,7 +1562,13 @@ document.querySelectorAll('.tab-btn').forEach(b => b.addEventListener('click', (
   show($('tab-pipe'), t==='pipe');
   show($('tab-unit'), t==='unit');
   show($('tab-hx'), t==='hx');
-  if(t==='hx') setTimeout(window.__hxTabInit, 50);
+  if(t==='hx'){
+    setTimeout(function(){
+      window.__hxTabInit&&window.__hxTabInit();
+      // Resize again after layout settles
+      setTimeout(function(){ window.__hxInitDone&&hxResizeCvs(); }, 200);
+    }, 80);
+  }
 }));
 
 /* ═══════════════════════════════════════
@@ -2059,7 +2065,7 @@ unitCat('pressure');
   </div>
 
   <!-- 3. Diagramm -->
-  <div class="hx-gc" style="padding:6px">
+  <div class="hx-gc" style="padding:4px;overflow:hidden">
     <div class="hx-cvs-wrap"><canvas id="hx"></canvas><div id="hx-tip"></div></div>
   </div>
 
@@ -2273,14 +2279,14 @@ function fromCvs(cx,cy){return[Math.max(XN,Math.min(XX,XN+(cx-M.l)/dW()*(XX-XN))
 function inD(cx,cy){return cx>=M.l&&cx<=M.l+dW()&&cy>=M.t&&cy<=M.t+dH()}
 
 function hxResizeCvs(){
-  const wr=cvs.parentElement;
-  // Use full parent width; calculate from screen width directly
-  const w=Math.max(wr.clientWidth, window.innerWidth - 28);
-  CW=w;CH=Math.round(w*.78);
-  cvs.style.width=w+'px';cvs.style.height=CH+'px';
+  // Always derive width from window - works even when container is display:none during init
+  const padding = 28;  // 14px each side content-area padding
+  const w = Math.max(200, window.innerWidth - padding);
+  CW=w; CH=Math.round(w*0.82);
+  cvs.style.width=w+'px'; cvs.style.height=CH+'px';
   const dpr=Math.min(devicePixelRatio,2);
-  cvs.width=Math.round(w*dpr);cvs.height=Math.round(CH*dpr);
-  ctx.scale(dpr,dpr);hxRedraw();
+  cvs.width=Math.round(w*dpr); cvs.height=Math.round(CH*dpr);
+  ctx.scale(dpr,dpr); hxRedraw();
 }
 
 function hxRedraw(){
@@ -2483,10 +2489,10 @@ function hxAnalyseRoute(){
     const btn=document.createElement('button');
     btn.className='pbtn';
     btn.dataset.ap=opt.type;
-    btn.style.cssText=`margin-bottom:6px;text-align:left;padding:10px 12px`;
-    btn.innerHTML=`<span style="display:block;font-size:12px;font-weight:700;color:${col}">${labels[opt.type]}</span>`
-                + `<span style="display:block;font-size:10px;color:var(--t3);margin-top:2px">${desc[opt.type]}</span>`
-                + `<span style="display:block;font-size:10px;color:var(--t2);margin-top:3px">Prozesskette: ${stepNames}</span>`;
+    btn.style.cssText=`margin-bottom:8px;text-align:left;padding:14px 16px;width:100%;display:block`;
+    btn.innerHTML=`<span style="display:block;font-size:13px;font-weight:700;color:${col};margin-bottom:4px">${labels[opt.type]}</span>`
+                + `<span style="display:block;font-size:11px;color:var(--t3);margin-bottom:4px">${desc[opt.type]}</span>`
+                + `<span style="display:block;font-size:11px;color:var(--t2);line-height:1.4">Prozesskette: ${stepNames}</span>`;
     btn.onclick=()=>hxSelAutoProc(opt.type, possible);
     list.appendChild(btn);
   });
@@ -2877,7 +2883,7 @@ function hxUpdateUI(){
     div.className='se'+(i===activeIdx?' act':'');
     div.onclick=()=>{activeIdx=i;hxUpdateUI();hxRedraw()};
     const col=PTC[i%PTC.length];
-    div.innerHTML=`<div class="se-dot" style="background:${col}"></div><div class="se-info"><div class="se-main">Z${i+1}: ${st.t.toFixed(1)} °C &nbsp;/&nbsp; ${st.x.toFixed(2)} g/kg</div><div class="se-sub">h=${st.h.toFixed(1)} kJ/kg &middot; φ=${st.phi.toFixed(1)}% &middot; ρ=${st.rho.toFixed(3)} kg/m³</div></div>`;
+    div.innerHTML=`<div class="hx-se-dot" style="background:${col}"></div><div class="hx-se-info"><div class="hx-se-main">Z${i+1}: ${st.t.toFixed(1)} °C / ${st.x.toFixed(2)} g/kg</div><div class="hx-se-sub">h=${st.h.toFixed(1)} kJ/kg &middot; φ=${st.phi.toFixed(1)}% &middot; ρ=${st.rho.toFixed(3)} kg/m³</div></div>`;
     slist.appendChild(div);
   });
 
