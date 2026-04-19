@@ -593,6 +593,20 @@ input[type=number]::-webkit-outer-spin-button { -webkit-appearance:none; }
 
 
 /* ── h,x-Diagramm Tab ── */
+/* Canvas neutral shell — no transforms, no pseudo-elements, no overflow clipping */
+.hx-diag-shell{
+  width:100%;
+  background:white;
+  border-radius:12px;
+  border:1px solid rgba(255,255,255,.14);
+  padding:0;margin:0;
+  overflow:visible;
+  position:relative;
+  box-sizing:border-box;
+  transform:none;
+  clip-path:none;
+}
+
 
 
 /* ── Header ── */
@@ -666,8 +680,27 @@ input[type=number]::-webkit-outer-spin-button { -webkit-appearance:none; }
 .hx-se-sub{font-size:10px;color:var(--t3);margin-top:2px;font-family:var(--fm)}
 
 /* ── Canvas ── */
-.hx-cvs-wrap{position:relative;width:100%;touch-action:none;background:white;border-radius:10px;overflow:visible;min-height:320px;height:auto;display:block}
-#hx{display:block;width:100%;cursor:crosshair;height:auto}
+.hx-cvs-wrap{
+  position:relative;
+  width:100%;
+  max-width:100%;
+  box-sizing:border-box;
+  touch-action:none;
+  background:white;
+  border-radius:12px;
+  overflow:visible;
+  display:block;
+  transform:none;
+  clip-path:none;
+}
+#hx{
+  display:block;
+  width:100% !important;
+  max-width:100%;
+  height:auto;
+  cursor:crosshair;
+  box-sizing:border-box;
+}
 
 /* ── Tooltip ── */
 #tip{position:absolute;background:rgba(4,12,28,.96);border:1px solid rgba(255,255,255,.18);border-radius:10px;padding:9px 13px;font-size:11px;font-family:var(--fm);pointer-events:none;display:none;z-index:20;line-height:1.8;backdrop-filter:blur(12px)}
@@ -2068,9 +2101,10 @@ unitCat('pressure');
   </div>
 
   <!-- 3. Diagramm -->
-  <div class="hx-gc" style="padding:4px">
-    <div class="hx-cvs-wrap"><canvas id="hx"></canvas><div id="hx-tip"></div></div>
+  <div class="hx-diag-shell">
+    <div class="hx-cvs-wrap"><canvas id="hx"></canvas></div>
   </div>
+  <div id="hx-tip"></div>
 
   <!-- 4. Luftzustände (conditional) -->
   <div class="hx-gc" id="slist-wrap" style="display:none">
@@ -2284,19 +2318,24 @@ function inD(cx,cy){return cx>=M.l&&cx<=M.l+dW()&&cy>=M.t&&cy<=M.t+dH()}
 function hxResizeCvs(){
   const wrap = cvs.parentElement;
   if(!wrap) return;
-  // Use actual container width — clientWidth is reliable after tab is visible
-  const w = Math.max(280, Math.floor(wrap.clientWidth));
+  // Guard: clientWidth=0 means tab is still hidden — skip, rAF will retry
+  const cw = Math.floor(wrap.clientWidth);
+  if(cw < 10) return;
+  const w = cw;
   const h = Math.round(w * 0.78);
   CW = w; CH = h;
-  // CSS size for BOTH canvas AND wrapper — fixes Safari parent collapse
+  // Set explicit dimensions on BOTH canvas and wrapper
   cvs.style.width   = w + 'px';
   cvs.style.height  = h + 'px';
-  wrap.style.height = h + 'px';          // FIX: explicit parent height
+  wrap.style.width  = w + 'px';
+  wrap.style.height = h + 'px';
+  // Also set on shell (grandparent)
+  if(wrap.parentElement) wrap.parentElement.style.minHeight = h + 'px';
   // Bitmap size
   const dpr = Math.min(window.devicePixelRatio || 1, 2);
   cvs.width  = Math.round(w * dpr);
   cvs.height = Math.round(h * dpr);
-  // CRITICAL: full transform reset — prevents scale() accumulation
+  // Full matrix reset before scale — prevents accumulation
   ctx.setTransform(1, 0, 0, 1, 0, 0);
   ctx.scale(dpr, dpr);
   ctx.imageSmoothingEnabled = true;
@@ -2958,7 +2997,7 @@ window.__hxTabInit = function() {
           var ro = new ResizeObserver(function(){
             if(window.__hxInitDone) hxResizeCvs();
           });
-          ro.observe(cvs.parentElement);
+          ro.observe(cvs.parentElement.parentElement || cvs.parentElement);
         }
       });
     });
