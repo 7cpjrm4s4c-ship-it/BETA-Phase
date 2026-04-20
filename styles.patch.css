@@ -1,15 +1,11 @@
 /* SAFE PATCH ADDITIONS */
 
-/* remove legacy badge */
-.hx-badge{
-  display:none !important;
-}
-
 /* full width h,x area */
 #tab-hx{
   width:100%;
-  max-width:none;
+  max-width:none !important;
   overflow:visible !important;
+  padding:0 !important;
 }
 
 #tab-hx iframe,
@@ -20,7 +16,8 @@
 }
 
 /* remove +/- sign toggle */
-.hx-sign-btn{
+.hx-sign-btn,
+.sign-btn{
   display:none !important;
 }
 
