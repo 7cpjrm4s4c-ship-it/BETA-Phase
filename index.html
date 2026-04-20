@@ -684,7 +684,7 @@ body { display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
             </div>
           </div>
           <div class="iwrap">
-            <input class="inp" id="h-q" type="number" min="0" step="100" placeholder="0" inputmode="decimal"/>
+            <input class="inp" id="h-q" type="text" min="0" step="100" placeholder="0" inputmode="decimal"/>
             <span class="iunit" id="h-q-unit">W</span>
           </div>
         </div>
@@ -692,7 +692,7 @@ body { display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
         <div class="igrp" id="h-ig-ms" style="display:none">
           <div class="ilbl">Massenstrom [kg/h]</div>
           <div class="iwrap">
-            <input class="inp" id="h-ms-in" type="number" min="0" step="1" placeholder="0" inputmode="decimal"/>
+            <input class="inp" id="h-ms-in" type="text" min="0" step="1" placeholder="0" inputmode="decimal"/>
             <span class="iunit">kg/h</span>
           </div>
         </div>
@@ -700,7 +700,7 @@ body { display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
         <div class="igrp" id="h-ig-dt">
           <div class="ilbl" id="h-dt-lbl">&Delta;T [K]</div>
           <div class="iwrap">
-            <input class="inp-sm" id="h-dt" type="number" min="0.5" step="0.5" value="10" inputmode="decimal"/>
+            <input class="inp-sm" id="h-dt" type="text" min="0.5" step="0.5" value="10" inputmode="decimal"/>
             <span class="iunit">K</span>
           </div>
         </div>
@@ -725,21 +725,21 @@ body { display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
             </div>
           </div>
           <div class="iwrap">
-            <input class="inp" id="k-q" type="number" min="0" step="100" placeholder="0" inputmode="decimal"/>
+            <input class="inp" id="k-q" type="text" min="0" step="100" placeholder="0" inputmode="decimal"/>
             <span class="iunit" id="k-q-unit">W</span>
           </div>
         </div>
         <div class="igrp" id="k-ig-ms" style="display:none">
           <div class="ilbl">Massenstrom [kg/h]</div>
           <div class="iwrap">
-            <input class="inp" id="k-ms-in" type="number" min="0" step="1" placeholder="0" inputmode="decimal"/>
+            <input class="inp" id="k-ms-in" type="text" min="0" step="1" placeholder="0" inputmode="decimal"/>
             <span class="iunit">kg/h</span>
           </div>
         </div>
         <div class="igrp" id="k-ig-dt">
           <div class="ilbl" id="k-dt-lbl">&Delta;T [K]</div>
           <div class="iwrap">
-            <input class="inp-sm" id="k-dt" type="number" min="0.5" step="0.5" value="6" inputmode="decimal"/>
+            <input class="inp-sm" id="k-dt" type="text" min="0.5" step="0.5" value="6" inputmode="decimal"/>
             <span class="iunit">K</span>
           </div>
         </div>
@@ -840,14 +840,14 @@ body { display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
         <div class="tzl-side tzl-h">
           <div class="tzl-lbl">Zuluft t<sub>ZL,H</sub></div>
           <div class="iwrap">
-            <input class="tzl-inp" id="luft-tzl-h" type="number" step="0.5" placeholder="z.B. 40" inputmode="decimal"/>
+            <input class="tzl-inp" id="luft-tzl-h" type="text" step="0.5" placeholder="z.B. 40" inputmode="decimal"/>
             <span class="iunit">&deg;C</span>
           </div>
         </div>
         <div class="tzl-side tzl-k">
           <div class="tzl-lbl">Zuluft t<sub>ZL,K</sub></div>
           <div class="iwrap">
-            <input class="tzl-inp" id="luft-tzl-k" type="number" step="0.5" placeholder="z.B. 16" inputmode="decimal"/>
+            <input class="tzl-inp" id="luft-tzl-k" type="text" step="0.5" placeholder="z.B. 16" inputmode="decimal"/>
             <span class="iunit">&deg;C</span>
           </div>
         </div>
@@ -857,14 +857,14 @@ body { display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
         <div class="tzl-side tzl-h">
           <div class="tzl-lbl">Raum t<sub>R,H</sub></div>
           <div class="iwrap">
-            <input class="tzl-inp" id="luft-tr-h" type="number" step="0.5" value="20" inputmode="decimal"/>
+            <input class="tzl-inp" id="luft-tr-h" type="text" step="0.5" value="20" inputmode="decimal"/>
             <span class="iunit">&deg;C</span>
           </div>
         </div>
         <div class="tzl-side tzl-k">
           <div class="tzl-lbl">Raum t<sub>R,K</sub></div>
           <div class="iwrap">
-            <input class="tzl-inp" id="luft-tr-k" type="number" step="0.5" value="26" inputmode="decimal"/>
+            <input class="tzl-inp" id="luft-tr-k" type="text" step="0.5" value="26" inputmode="decimal"/>
             <span class="iunit">&deg;C</span>
           </div>
         </div>
@@ -901,11 +901,11 @@ body { display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
           </div>
         </div>
         <div class="iwrap" id="luft-q-wrap-h">
-          <input class="inp" id="luft-q-in-h" type="number" min="0" step="100" placeholder="0" inputmode="decimal"/>
+          <input class="inp" id="luft-q-in-h" type="text" min="0" step="100" placeholder="0" inputmode="decimal"/>
           <span class="iunit" id="luft-q-unit-badge">W</span>
         </div>
         <div class="iwrap" id="luft-q-wrap-k" style="display:none">
-          <input class="inp" id="luft-q-in-k" type="number" min="0" step="100" placeholder="0" inputmode="decimal"/>
+          <input class="inp" id="luft-q-in-k" type="text" min="0" step="100" placeholder="0" inputmode="decimal"/>
           <span class="iunit" id="luft-q-unit-badge-k">W</span>
         </div>
       </div>
@@ -914,7 +914,7 @@ body { display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
       <div class="igrp" id="luft-ig-v" style="display:none">
         <div class="ilbl">Luftvolumenstrom V&#x307;</div>
         <div class="iwrap">
-          <input class="inp" id="luft-v" type="number" min="0" step="100" placeholder="0" inputmode="decimal"/>
+          <input class="inp" id="luft-v" type="text" min="0" step="100" placeholder="0" inputmode="decimal"/>
           <span class="iunit">m&sup3;/h</span>
         </div>
       </div>
@@ -981,14 +981,14 @@ body { display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
     <div class="igrp" style="margin-bottom:0">
       <div class="ilbl">Volumenstrom</div>
       <div class="iwrap">
-        <input class="inp" id="p-vol" type="number" min="0" step="0.01" placeholder="0.00" inputmode="decimal" style="font-size:18px;padding:12px 52px 12px 14px"/>
+        <input class="inp" id="p-vol" type="text" min="0" step="0.01" placeholder="0.00" inputmode="decimal" style="font-size:18px;padding:12px 52px 12px 14px"/>
         <span class="iunit">m&sup3;/h</span>
       </div>
     </div>
     <div class="igrp" style="margin-bottom:0">
       <div class="ilbl">max. Druckverlust</div>
       <div class="iwrap">
-        <input class="inp-sm" id="p-dp" type="number" min="10" step="10" value="100" inputmode="decimal"/>
+        <input class="inp-sm" id="p-dp" type="text" min="10" step="10" value="100" inputmode="decimal"/>
         <span class="iunit">Pa/m</span>
       </div>
     </div>
@@ -1045,7 +1045,7 @@ body { display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
         <div class="ilbl">Eingabe</div>
         <div style="display:flex;gap:8px;align-items:stretch">
           <div class="iw" style="flex:1">
-            <input class="inp" id="unit-from-val" type="number" placeholder="0" inputmode="decimal"
+            <input class="inp" id="unit-from-val" type="text" placeholder="0" inputmode="decimal"
               style="font-size:22px;padding:12px 14px;border-radius:var(--r-m)"
               oninput="unitCalc()"/>
           </div>
@@ -1154,6 +1154,7 @@ function lambdaCW(Re, eps, D) {
     if (Math.abs(n-l) < 1e-11) { l=n; break; }
     l = n;
   }
+  
   return l;
 }
 function pdrop(vol, diMm, eps) {
