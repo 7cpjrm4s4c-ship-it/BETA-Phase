@@ -1,0 +1,8 @@
+<!-- PATCH NOTES
+1. Tab order changed: Lüftung -> h,x-Diagramm -> Rohrdimensionierung -> Einheiten
+2. Removed hx-badge header badge
+3. Removed PDF duplicate header fields pp-dt-head / pp-nr-head assignment
+4. States table order changed to t | x | phi | h | t_dp | rho
+5. Removed +/- toggle usage for negative inputs
+Use this as patch reference for production index.html
+-->
