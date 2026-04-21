@@ -729,7 +729,13 @@ input[type=number]::-webkit-outer-spin-button { -webkit-appearance:none; }
 #app::before,
 .shell::before,
 .main::before,
-.hdr::before
+.hdr::before {
+       display: none !important;
+} 
+
+.main::before {
+    display: none !important;
+}
 
 </style>
 </head>
