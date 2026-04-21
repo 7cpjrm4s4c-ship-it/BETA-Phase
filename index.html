@@ -1742,7 +1742,7 @@ document.querySelectorAll('.tab-btn').forEach(b => b.addEventListener('click', (
   if(hxTabInit) {
      hxTabInit.style.display = "none";
   }
-  if(t==='hx'){
+  if(t === "hx" || t === "HX"){
     [$('tab-flow'),$('tab-luft'),$('tab-pipe'),$('tab-unit')].forEach(function(el){if(el)el.style.display='none'});
   }
 }));
