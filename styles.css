@@ -1,91 +1,184 @@
 html,body{height:100%;margin:0}body{min-height:100dvh;background:#0b0b0b;color:#fff;font-family:system-ui}
 
-/* ===== HX PANEL ===== */
+/* =========================================
+   HX MODULE -- FINAL PRODUCTION UI
+========================================= */
 
-.hx-panel {
+#tab-hx {
+  display: none;
   padding: 20px;
-  margin-bottom: 16px;
-  border-radius: 18px;
-  background: rgba(255,255,255,0.04);
-  backdrop-filter: blur(12px);
+  overflow-y: auto;
+}
+
+.hx-layout {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 18px;
+}
+
+/* Desktop Layout */
+
+@media (min-width: 1100px) {
+  .hx-layout {
+    grid-template-columns: 420px 1fr;
+    align-items: start;
+  }
+
+  .hx-diagram-card {
+    grid-column: 2;
+    grid-row: 1 / span 5;
+    min-height: 780px;
+  }
+}
+
+/* Cards */
+
+.hx-card {
+  background:
+    radial-gradient(circle at top left,
+      rgba(30,60,120,0.22),
+      rgba(0,0,0,0.92));
   border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 22px;
+  padding: 22px;
+  backdrop-filter: blur(14px);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,0.05),
+    0 20px 50px rgba(0,0,0,0.35);
+}
+
+.hx-title {
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.72);
+  margin-bottom: 18px;
 }
 
 /* Toggle */
 
 .hx-mode-switch {
   display: flex;
-  gap: 8px;
-  margin-bottom: 16px;
+  gap: 10px;
+  margin-bottom: 18px;
 }
 
 .hx-mode {
   flex: 1;
-  padding: 10px;
-  border-radius: 12px;
-  border: 1px solid rgba(255,255,255,0.1);
-  background: transparent;
-  color: #aaa;
+  height: 52px;
+  border-radius: 16px;
+  border: 1px solid rgba(255,255,255,0.08);
+  background: rgba(255,255,255,0.02);
+  color: rgba(255,255,255,0.72);
+  font-weight: 700;
+  font-size: 15px;
   cursor: pointer;
+  transition: 0.2s ease;
 }
 
 .hx-mode.active {
-  background: linear-gradient(135deg, #5b52ff, #7c72ff);
+  background: linear-gradient(
+    135deg,
+    #5b52ff,
+    #746cff
+  );
   color: white;
   border-color: transparent;
+  box-shadow:
+    0 10px 30px rgba(90,82,255,0.22);
 }
 
 /* Inputs */
 
 .hx-input-group {
-  margin-bottom: 12px;
+  margin-bottom: 14px;
 }
 
 .hx-input-group label {
   display: block;
+  margin-bottom: 8px;
   font-size: 12px;
-  margin-bottom: 4px;
-  color: #aaa;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.62);
 }
 
-.hx-input {
+.hx-input,
+select.hx-input {
   width: 100%;
-  padding: 12px;
-  border-radius: 12px;
-  border: 1px solid rgba(255,255,255,0.1);
-  background: rgba(255,255,255,0.05);
+  height: 58px;
+  padding: 0 18px;
+  border-radius: 16px;
+  border: 1px solid rgba(255,255,255,0.08);
+  background:
+    linear-gradient(
+      90deg,
+      rgba(255,255,255,0.03),
+      rgba(255,255,255,0.01)
+    );
   color: white;
-  font-size: 14px;
+  font-size: 16px;
+  outline: none;
 }
 
-/* Button */
+.hx-input::placeholder {
+  color: rgba(255,255,255,0.28);
+}
+
+/* Main Button */
 
 .hx-main-btn {
   width: 100%;
-  padding: 14px;
-  border-radius: 14px;
+  height: 62px;
   border: none;
-  background: linear-gradient(135deg, #5b52ff, #7c72ff);
+  border-radius: 18px;
+  background: linear-gradient(
+    135deg,
+    #5b52ff,
+    #746cff
+  );
   color: white;
-  font-weight: 600;
-  margin-top: 10px;
+  font-size: 18px;
+  font-weight: 700;
   cursor: pointer;
+  margin-top: 8px;
+  box-shadow:
+    0 18px 40px rgba(90,82,255,0.22);
 }
 
-/* Zustand Box */
+/* State + Result */
 
 .hx-state-box {
-  margin-top: 12px;
-  padding: 12px;
-  border-radius: 12px;
-  background: rgba(255,255,255,0.04);
-  font-size: 13px;
-  color: #ccc;
+  margin-top: 16px;
+  padding: 18px;
+  border-radius: 16px;
+  background:
+    rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.06);
+  color: rgba(255,255,255,0.84);
+  min-height: 72px;
+  line-height: 1.5;
 }
 
-/* Canvas größer machen */
+/* Diagram */
+
+.hx-diagram-card {
+  min-height: 620px;
+}
 
 .hx-cvs-wrap {
-  margin-top: 16px;
-  height: 520px;
+  height: 100%;
+  min-height: 560px;
+  border-radius: 18px;
+  overflow: hidden;
+  background:
+    rgba(0,0,0,0.28);
+}
+
+#hxCanvas {
+  width: 100%;
+  height: 100%;
+  display: block;
 }
