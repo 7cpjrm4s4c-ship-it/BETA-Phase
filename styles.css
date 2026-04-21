@@ -1,1 +1,91 @@
 html,body{height:100%;margin:0}body{min-height:100dvh;background:#0b0b0b;color:#fff;font-family:system-ui}
+
+/* ===== HX PANEL ===== */
+
+.hx-panel {
+  padding: 20px;
+  margin-bottom: 16px;
+  border-radius: 18px;
+  background: rgba(255,255,255,0.04);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255,255,255,0.08);
+}
+
+/* Toggle */
+
+.hx-mode-switch {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.hx-mode {
+  flex: 1;
+  padding: 10px;
+  border-radius: 12px;
+  border: 1px solid rgba(255,255,255,0.1);
+  background: transparent;
+  color: #aaa;
+  cursor: pointer;
+}
+
+.hx-mode.active {
+  background: linear-gradient(135deg, #5b52ff, #7c72ff);
+  color: white;
+  border-color: transparent;
+}
+
+/* Inputs */
+
+.hx-input-group {
+  margin-bottom: 12px;
+}
+
+.hx-input-group label {
+  display: block;
+  font-size: 12px;
+  margin-bottom: 4px;
+  color: #aaa;
+}
+
+.hx-input {
+  width: 100%;
+  padding: 12px;
+  border-radius: 12px;
+  border: 1px solid rgba(255,255,255,0.1);
+  background: rgba(255,255,255,0.05);
+  color: white;
+  font-size: 14px;
+}
+
+/* Button */
+
+.hx-main-btn {
+  width: 100%;
+  padding: 14px;
+  border-radius: 14px;
+  border: none;
+  background: linear-gradient(135deg, #5b52ff, #7c72ff);
+  color: white;
+  font-weight: 600;
+  margin-top: 10px;
+  cursor: pointer;
+}
+
+/* Zustand Box */
+
+.hx-state-box {
+  margin-top: 12px;
+  padding: 12px;
+  border-radius: 12px;
+  background: rgba(255,255,255,0.04);
+  font-size: 13px;
+  color: #ccc;
+}
+
+/* Canvas größer machen */
+
+.hx-cvs-wrap {
+  margin-top: 16px;
+  height: 520px;
+}
