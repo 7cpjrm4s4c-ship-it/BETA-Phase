@@ -1738,9 +1738,10 @@ document.querySelectorAll('.tab-btn').forEach(b => b.addEventListener('click', (
   show($('tab-luft'), t==='luft');
   show($('tab-pipe'), t==='pipe');
   show($('tab-unit'), t==='unit');
-  var hxTab = $('tab-hx');
-  if(hxTab) hxTab.style.display = t==='hx' ? 'flex' : 'none';
-  // Hide other tabs when hx is active (show() sets block, we need none)
+  const hxTabInit = $('tab-hx');
+  if(hxTabInit) {
+     hxTabInit.style.display = "none";
+  }
   if(t==='hx'){
     [$('tab-flow'),$('tab-luft'),$('tab-pipe'),$('tab-unit')].forEach(function(el){if(el)el.style.display='none'});
   }
