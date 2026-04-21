@@ -44,6 +44,18 @@ function setHxState() {
   renderHxState(state);
 }
 
+document.getElementById("state-temp").textContent =
+    `${T || "-"} °C`;
+
+document.getElementById("state-rh").textContent =
+    `${phi || "-"} %`;
+
+document.getElementById("state-x").textContent =
+    `${x || "-"} g/kg`;
+
+document.getElementById("state-h").textContent =
+    `${calcEnthalpy(T, x).toFixed(1)} kJ/kg`;
+
 // ===== BASIC RENDER =====
 function renderHxState(state) {
   const out = document.getElementById("hx-debug");
