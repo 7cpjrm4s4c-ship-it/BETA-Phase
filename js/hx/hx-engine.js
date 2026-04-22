@@ -349,19 +349,65 @@ if (!isNaN(xLabel) && !isNaN(hLabel)) {
     }
 } 
 
+function projectHX(x, h, width, height) {
+    /*
+    Mollier-Projektion (vereinfachte echte Geometrie)
+
+    x = Feuchtegehalt [g/kg]
+    h = Enthalpie [kJ/kg]
+
+    Ziel:
+    - x horizontal
+    - h diagonal/schräg wie im echten h,x-Diagramm
+    */
+
+    const xMax = 30;   // g/kg
+    const hMax = 100;  // kJ/kg
+
+    // horizontale Position
+    const px = (x / xMax) * width;
+
+    /*
+    Vertikale Projektion:
+
+    echtes Mollier:
+    h-Achse ist schräg → daher Offset über x
+
+    je weiter rechts (mehr x),
+    desto stärker verschiebt sich h nach unten
+    */
+
+    const skewFactor = 7; // später feinjustieren
+
+    const py =
+        height
+        - (h / hMax) * height
+        + (x * skewFactor);
+
+    return { px, py };
+}
+
 function drawStatePoint(ctx, width, height, state) {
     if (!state || state.x === undefined) return;
 
     const x = state.x;
     const h = calcEnthalpy(state.T, x);
 
-    const px = (x / 30) * width;
-    const py = height - (h / 70) * height;
+    const { px, py } = projectHX(x, h, width, height);
 
     ctx.beginPath();
     ctx.arc(px, py, 8, 0, Math.PI * 2);
     ctx.fillStyle = "#6d63ff";
+    ctx.shadowColor = "#6d63ff";
+    ctx.shadowBlur = 20;
     ctx.fill();
+
+    ctx.shadowBlur = 0;
+    ctx.fillStyle = "#ffffff";
+    ctx.font = "14px sans-serif";
+
+    ctx.fillText(`x=${x.toFixed(2)} g/kg`, px + 12, py - 10);
+    ctx.fillText(`h=${h.toFixed(1)} kJ/kg`, px + 12, py + 10);
 }
 });
 }
