@@ -38,9 +38,17 @@ function setHxState() {
   const rhInput = document.getElementById("hx-rh");
   const xInput = document.getElementById("hx-x");
 
-  const T = Number(tInput?.value);
-  const phi = Number(rhInput?.value);
-  const x = Number(xInput?.value);
+const T = tInput?.value.trim() === ""
+    ? NaN
+    : Number(tInput.value);
+
+const phi = rhInput?.value.trim() === ""
+    ? NaN
+    : Number(rhInput.value);
+
+const x = xInput?.value.trim() === ""
+    ? NaN
+    : Number(xInput.value);
 
 console.log("tInput:", tInput);
 console.log("rhInput:", rhInput);
