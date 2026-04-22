@@ -140,31 +140,6 @@ console.log("x parsed:", x);
   renderHxState(state);
 }
 
-// ===== SATURATION CURVE (phi = 100%) =====
-
-ctx.beginPath();
-ctx.strokeStyle = "rgba(120,160,255,0.85)";
-ctx.lineWidth = 2;
-
-let first = true;
-
-for (let T = -10; T <= 50; T += 1) {
-    const xSat = calcHumidityRatio(T, 100);
-    const hSat = calcEnthalpy(T, xSat);
-
-    const pxSat = (xSat / 30) * width;
-    const pySat = height - (hSat / 100) * height;
-
-    if (first) {
-        ctx.moveTo(pxSat, pySat);
-        first = false;
-    } else {
-        ctx.lineTo(pxSat, pySat);
-    }
-}
-
-ctx.stroke();
-
 function renderHxState(state) {
     if (!state) return;
 
@@ -192,6 +167,88 @@ function renderHxState(state) {
         `${h} kJ/kg`;
   
 drawHxPoint(state);
+}
+
+function drawHxPoint(state) {
+    const canvas = document.getElementById("hxCanvas");
+    if (!canvas || !state) return;
+
+    const ctx = canvas.getContext("2d");
+
+    const width = canvas.clientWidth;
+    const height = canvas.clientHeight;
+
+    canvas.width = width;
+    canvas.height = height;
+
+    // Hintergrund
+    ctx.clearRect(0, 0, width, height);
+    ctx.fillStyle = "#050814";
+    ctx.fillRect(0, 0, width, height);
+
+    // Grid
+    ctx.strokeStyle = "rgba(255,255,255,0.05)";
+    ctx.lineWidth = 1;
+
+    for (let i = 0; i < width; i += 40) {
+        ctx.beginPath();
+        ctx.moveTo(i, 0);
+        ctx.lineTo(i, height);
+        ctx.stroke();
+    }
+
+    for (let i = 0; i < height; i += 40) {
+        ctx.beginPath();
+        ctx.moveTo(0, i);
+        ctx.lineTo(width, i);
+        ctx.stroke();
+    }
+
+    // Sättigungskurve (phi = 100%)
+    ctx.beginPath();
+    ctx.strokeStyle = "rgba(120,160,255,0.85)";
+    ctx.lineWidth = 2;
+
+    let first = true;
+
+    for (let T = -10; T <= 50; T += 1) {
+        const xSat = calcHumidityRatio(T, 100);
+        const hSat = calcEnthalpy(T, xSat);
+
+        const pxSat = (xSat / 30) * width;
+        const pySat = height - (hSat / 100) * height;
+
+        if (first) {
+            ctx.moveTo(pxSat, pySat);
+            first = false;
+        } else {
+            ctx.lineTo(pxSat, pySat);
+        }
+    }
+
+    ctx.stroke();
+
+    // Zustandspunkt
+    const x = state.x || 0;
+    const h = calcEnthalpy(state.T, x);
+
+    const px = (x / 30) * width;
+    const py = height - (h / 100) * height;
+
+    ctx.beginPath();
+    ctx.arc(px, py, 7, 0, Math.PI * 2);
+    ctx.fillStyle = "#7c6cff";
+    ctx.shadowBlur = 20;
+    ctx.shadowColor = "#7c6cff";
+    ctx.fill();
+
+    ctx.shadowBlur = 0;
+
+    // Label
+    ctx.fillStyle = "#ffffff";
+    ctx.font = "14px sans-serif";
+    ctx.fillText(`x=${x} g/kg`, px + 12, py - 10);
+    ctx.fillText(`h=${h.toFixed(1)} kJ/kg`, px + 12, py + 12);
 }
 
 // ===== EVENT BINDING =====
