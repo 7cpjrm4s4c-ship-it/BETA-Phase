@@ -369,6 +369,5 @@ if (!isNaN(xLabel) && !isNaN(hLabel)) {
             `${T}°C`,
             pxLabel + 8,
             pyLabel - 8
-        );
-    }
-}
+        });
+  }
