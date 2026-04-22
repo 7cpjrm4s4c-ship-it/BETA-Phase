@@ -372,3 +372,5 @@ if (!isNaN(xLabel) && !isNaN(hLabel)) {
         );
     }
 } 
+
+}
