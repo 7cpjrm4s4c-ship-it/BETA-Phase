@@ -44,17 +44,32 @@ function setHxState() {
   renderHxState(state);
 }
 
-document.getElementById("state-temp").textContent =
-    `${T || "-"} °C`;
+function renderHxState(state) {
+    if (!state) return;
 
-document.getElementById("state-rh").textContent =
-    `${phi || "-"} %`;
+    document.getElementById("state-temp").textContent =
+        `${state.T ?? "--"} °C`;
 
-document.getElementById("state-x").textContent =
-    `${x || "-"} g/kg`;
+    document.getElementById("state-rh").textContent =
+        `${state.phi ?? "--"} %`;
 
-document.getElementById("state-h").textContent =
-    `${calcEnthalpy(T, x).toFixed(1)} kJ/kg`;
+    document.getElementById("state-x").textContent =
+        `${state.x ?? "--"} g/kg`;
+
+    let h = "--";
+
+    if (
+        state.T !== undefined &&
+        state.x !== undefined &&
+        !isNaN(state.T) &&
+        !isNaN(state.x)
+    ) {
+        h = calcEnthalpy(state.T, state.x).toFixed(1);
+    }
+
+    document.getElementById("state-h").textContent =
+        `${h} kJ/kg`;
+}
 
 // ===== BASIC RENDER =====
 function renderHxState(state) {
