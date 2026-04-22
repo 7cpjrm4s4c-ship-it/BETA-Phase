@@ -78,6 +78,7 @@ function calcHumidityRatio(T, phi) {
 
 // ===== SET STATE =====
 function setHxState() {
+  console.log("BUTTON CLICK WORKS");
   const tInput = document.getElementById("hx-temp");
   const rhInput = document.getElementById("hx-rh");
   const xInput = document.getElementById("hx-x");
@@ -165,89 +166,8 @@ function renderHxState(state) {
 
     document.getElementById("state-h").textContent =
         `${h} kJ/kg`;
-  
-drawHxPoint(state);
-}
 
-function drawHxPoint(state) {
-    const canvas = document.getElementById("hxCanvas");
-    if (!canvas) return;
-
-    const ctx = canvas.getContext("2d");
-
-    const width = canvas.clientWidth;
-    const height = canvas.clientHeight;
-
-    canvas.width = width;
-    canvas.height = height;
-
-    // Hintergrund
-    ctx.clearRect(0, 0, width, height);
-    ctx.fillStyle = "#050814";
-    ctx.fillRect(0, 0, width, height);
-
-    // Grid
-    ctx.strokeStyle = "rgba(255,255,255,0.05)";
-    ctx.lineWidth = 1;
-
-    for (let i = 0; i < width; i += 40) {
-        ctx.beginPath();
-        ctx.moveTo(i, 0);
-        ctx.lineTo(i, height);
-        ctx.stroke();
-    }
-
-    for (let i = 0; i < height; i += 40) {
-        ctx.beginPath();
-        ctx.moveTo(0, i);
-        ctx.lineTo(width, i);
-        ctx.stroke();
-    }
-
-    // Sättigungskurve (phi = 100%)
-    ctx.beginPath();
-    ctx.strokeStyle = "#8ab4ff";
-    ctx.lineWidth = 3;
-
-    let first = true;
-
-    for (let T = -10; T <= 50; T += 1) {
-        const xSat = calcHumidityRatio(T, 100);
-        const hSat = calcEnthalpy(T, xSat);
-
-        const pxSat = (xSat / 30) * width;
-        const pySat = height - (hSat / 70) * height;
-
-        if (first) {
-            ctx.moveTo(pxSat, pySat);
-            first = false;
-        } else {
-            ctx.lineTo(pxSat, pySat);
-        }
-    }
-
-    ctx.stroke();
-
-if (state && state.x !== undefined) {
-    const x = state.x;
-    const h = calcEnthalpy(state.T, x);
-
-    const px = (x / 30) * width;
-    const py = height - (h / 70) * height;
-
-    ctx.beginPath();
-    ctx.arc(px, py, 7, 0, Math.PI * 2);
-    ctx.fillStyle = "#7c6cff";
-    ctx.shadowBlur = 20;
-    ctx.shadowColor = "#7c6cff";
-    ctx.fill();
-
-    ctx.shadowBlur = 0;
-
-    ctx.fillStyle = "#ffffff";
-    ctx.font = "14px sans-serif";
-    ctx.fillText(`x=${x} g/kg`, px + 12, py - 10);
-    ctx.fillText(`h=${h.toFixed(1)} kJ/kg`, px + 12, py + 12);
+    drawHxPoint(state);
 }
 
 // ===== EVENT BINDING =====
@@ -260,16 +180,24 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   btn.addEventListener("click", setHxState);
+
+  drawHxPoint(null);
 });
 
 function drawHxPoint(state) {
+    console.log("drawHxPoint called:", state);
     const canvas = document.getElementById("hxCanvas");
     if (!canvas) return;
 
     const ctx = canvas.getContext("2d");
 
-    const width = canvas.clientWidth;
-    const height = canvas.clientHeight;
+const width = canvas.clientWidth;
+const height = canvas.clientHeight;
+
+console.log("Canvas size:", width, height);
+
+canvas.width = width;
+canvas.height = height;
 
     canvas.width = width;
     canvas.height = height;
@@ -299,33 +227,57 @@ function drawHxPoint(state) {
         ctx.stroke();
     }
 
-    // Wertebereich grob:
-    // x: 0–30 g/kg
-    // h: 0–100 kJ/kg
-
-if (state && state.x !== undefined) {
-    const x = state.x;
-    const h = calcEnthalpy(state.T, x);
-
-    const px = (x / 30) * width;
-    const py = height - (h / 70) * height;
-
-    // Punkt zeichnen
+    // Sättigungskurve
     ctx.beginPath();
-    ctx.arc(px, py, 8, 0, Math.PI * 2);
-    ctx.fillStyle = "#6d63ff";
-    ctx.shadowColor = "#6d63ff";
-    ctx.shadowBlur = 20;
-    ctx.fill();
+    ctx.strokeStyle = "#8ab4ff";
+    ctx.lineWidth = 3;
 
-    // Label
-    ctx.shadowBlur = 0;
-    ctx.fillStyle = "#ffffff";
-    ctx.font = "14px sans-serif";
-    ctx.fillText(`x=${x} g/kg`, px + 12, py - 10);
-    ctx.fillText(`h=${h.toFixed(1)} kJ/kg`, px + 12, py + 10);
-}
+    let first = true;
 
-document.addEventListener("DOMContentLoaded", () => {
-    drawHxPoint(null);
+    for (let T = -10; T <= 50; T += 1) {
+        const xSat = calcHumidityRatio(T, 100);
+        const hSat = calcEnthalpy(T, xSat);
+
+        const pxSat = (xSat / 30) * width;
+        const pySat = height - (hSat / 70) * height;
+
+        if (first) {
+            ctx.moveTo(pxSat, pySat);
+            first = false;
+        } else {
+            ctx.lineTo(pxSat, pySat);
+        }
+    }
+
+    ctx.stroke();
+
+    // Zustandspunkt nur wenn State vorhanden
+    if (state && state.x !== undefined) {
+        const x = state.x;
+        const h = calcEnthalpy(state.T, x);
+
+        const px = (x / 30) * width;
+        const py = height - (h / 70) * height;
+
+      console.log("Plot values:", {
+    x,
+    h,
+    px,
+    py
 });
+
+        ctx.beginPath();
+        ctx.arc(px, py, 8, 0, Math.PI * 2);
+        ctx.fillStyle = "#6d63ff";
+        ctx.shadowColor = "#6d63ff";
+        ctx.shadowBlur = 20;
+        ctx.fill();
+
+        ctx.shadowBlur = 0;
+        ctx.fillStyle = "#ffffff";
+        ctx.font = "14px sans-serif";
+
+        ctx.fillText(`x=${x} g/kg`, px + 12, py - 10);
+        ctx.fillText(`h=${h.toFixed(1)} kJ/kg`, px + 12, py + 10);
+    }
+}
