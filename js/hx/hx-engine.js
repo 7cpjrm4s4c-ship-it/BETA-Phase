@@ -69,19 +69,19 @@ console.log("x parsed:", x);
 
    const xCalc = calcHumidityRatio(T, phi);
 
-   Zustand = {
+   state = {
       T,
       phi,
       x: xCalc,
-      Modus: "T_phi"
+      mode: "T_phi"
    };
 
 } else if (!isNaN(T) && !isNaN(x)) {
 
-   Zustand = {
+   state = {
       T,
       x,
-      Modus: "T_x"
+      mode: "T_x"
    };
 
 } else {
