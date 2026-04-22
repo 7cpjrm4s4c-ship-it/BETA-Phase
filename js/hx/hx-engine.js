@@ -299,32 +299,52 @@ function drawHxPoint(state) {
         ctx.stroke();
     }
 
-    // Wertebereich grob:
-    // x: 0–30 g/kg
-    // h: 0–100 kJ/kg
-
-if (state && state.x !== undefined) {
-    const x = state.x;
-    const h = calcEnthalpy(state.T, x);
-
-    const px = (x / 30) * width;
-    const py = height - (h / 70) * height;
-
-    // Punkt zeichnen
+    // Sättigungskurve
     ctx.beginPath();
-    ctx.arc(px, py, 8, 0, Math.PI * 2);
-    ctx.fillStyle = "#6d63ff";
-    ctx.shadowColor = "#6d63ff";
-    ctx.shadowBlur = 20;
-    ctx.fill();
+    ctx.strokeStyle = "#8ab4ff";
+    ctx.lineWidth = 3;
 
-    // Label
-    ctx.shadowBlur = 0;
-    ctx.fillStyle = "#ffffff";
-    ctx.font = "14px sans-serif";
-    ctx.fillText(`x=${x} g/kg`, px + 12, py - 10);
-    ctx.fillText(`h=${h.toFixed(1)} kJ/kg`, px + 12, py + 10);
-  }
+    let first = true;
+
+    for (let T = -10; T <= 50; T += 1) {
+        const xSat = calcHumidityRatio(T, 100);
+        const hSat = calcEnthalpy(T, xSat);
+
+        const pxSat = (xSat / 30) * width;
+        const pySat = height - (hSat / 70) * height;
+
+        if (first) {
+            ctx.moveTo(pxSat, pySat);
+            first = false;
+        } else {
+            ctx.lineTo(pxSat, pySat);
+        }
+    }
+
+    ctx.stroke();
+
+    // Zustandspunkt nur wenn State vorhanden
+    if (state && state.x !== undefined) {
+        const x = state.x;
+        const h = calcEnthalpy(state.T, x);
+
+        const px = (x / 30) * width;
+        const py = height - (h / 70) * height;
+
+        ctx.beginPath();
+        ctx.arc(px, py, 8, 0, Math.PI * 2);
+        ctx.fillStyle = "#6d63ff";
+        ctx.shadowColor = "#6d63ff";
+        ctx.shadowBlur = 20;
+        ctx.fill();
+
+        ctx.shadowBlur = 0;
+        ctx.fillStyle = "#ffffff";
+        ctx.font = "14px sans-serif";
+
+        ctx.fillText(`x=${x} g/kg`, px + 12, py - 10);
+        ctx.fillText(`h=${h.toFixed(1)} kJ/kg`, px + 12, py + 10);
+    }
 }
 
 document.addEventListener("DOMContentLoaded", () => {
