@@ -319,7 +319,3 @@ function drawStatePoint(ctx, width, height, state) {
     ctx.fillText(`x=${x} g/kg`, px + 12, py - 10);
     ctx.fillText(`h=${h.toFixed(1)} kJ/kg`, px + 12, py + 10);
 }
-        ctx.fillText(`x=${x} g/kg`, px + 12, py - 10);
-        ctx.fillText(`h=${h.toFixed(1)} kJ/kg`, px + 12, py + 10);
-    }
-}
