@@ -171,7 +171,7 @@ drawHxPoint(state);
 
 function drawHxPoint(state) {
     const canvas = document.getElementById("hxCanvas");
-    if (!canvas || !state) return;
+    if (!canvas) return;
 
     const ctx = canvas.getContext("2d");
 
@@ -228,8 +228,8 @@ function drawHxPoint(state) {
 
     ctx.stroke();
 
-    // Zustandspunkt
-    const x = state.x || 0;
+if (state && state.x !== undefined) {
+    const x = state.x;
     const h = calcEnthalpy(state.T, x);
 
     const px = (x / 30) * width;
@@ -244,7 +244,6 @@ function drawHxPoint(state) {
 
     ctx.shadowBlur = 0;
 
-    // Label
     ctx.fillStyle = "#ffffff";
     ctx.font = "14px sans-serif";
     ctx.fillText(`x=${x} g/kg`, px + 12, py - 10);
@@ -325,3 +324,7 @@ function drawHxPoint(state) {
     ctx.fillText(`x=${x} g/kg`, px + 12, py - 10);
     ctx.fillText(`h=${h.toFixed(1)} kJ/kg`, px + 12, py + 10);
 }
+
+document.addEventListener("DOMContentLoaded", () => {
+    drawHxPoint(null);
+});
