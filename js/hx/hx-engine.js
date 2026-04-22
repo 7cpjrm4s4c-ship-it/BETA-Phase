@@ -349,4 +349,17 @@ function drawHxPoint(state) {
         ctx.fillText(`h=${h.toFixed(1)} kJ/kg`, px + 12, py + 10);
     }
 }
+
+document.addEventListener("DOMContentLoaded", () => {
+    const btn = document.getElementById("hx-set");
+
+    if (!btn) {
+        console.warn("hx-set button not found");
+        return;
+    }
+
+    btn.addEventListener("click", setHxState);
+
+    drawHxPoint(null);
+});
 }
