@@ -147,6 +147,8 @@ function renderHxState(state) {
         `${h} kJ/kg`;
 }
 
+drawHxPoint(state);
+
 // ===== EVENT BINDING =====
 document.addEventListener("DOMContentLoaded", () => {
   const btn = document.getElementById("hx-set");
@@ -158,3 +160,66 @@ document.addEventListener("DOMContentLoaded", () => {
 
   btn.addEventListener("click", setHxState);
 });
+
+function drawHxPoint(state) {
+    const canvas = document.getElementById("hxCanvas");
+    if (!canvas || !state) return;
+
+    const ctx = canvas.getContext("2d");
+
+    const width = canvas.clientWidth;
+    const height = canvas.clientHeight;
+
+    canvas.width = width;
+    canvas.height = height;
+
+    // Reset
+    ctx.clearRect(0, 0, width, height);
+
+    // Hintergrund
+    ctx.fillStyle = "#050814";
+    ctx.fillRect(0, 0, width, height);
+
+    // Grid
+    ctx.strokeStyle = "rgba(255,255,255,0.05)";
+    ctx.lineWidth = 1;
+
+    for (let i = 0; i < width; i += 40) {
+        ctx.beginPath();
+        ctx.moveTo(i, 0);
+        ctx.lineTo(i, height);
+        ctx.stroke();
+    }
+
+    for (let i = 0; i < height; i += 40) {
+        ctx.beginPath();
+        ctx.moveTo(0, i);
+        ctx.lineTo(width, i);
+        ctx.stroke();
+    }
+
+    // Wertebereich grob:
+    // x: 0–30 g/kg
+    // h: 0–100 kJ/kg
+
+    const x = state.x || 0;
+    const h = calcEnthalpy(state.T, state.x);
+
+    const px = (x / 30) * width;
+    const py = height - (h / 100) * height;
+
+    // Punkt zeichnen
+    ctx.beginPath();
+    ctx.arc(px, py, 8, 0, Math.PI * 2);
+    ctx.fillStyle = "#6d63ff";
+    ctx.shadowColor = "#6d63ff";
+    ctx.shadowBlur = 20;
+    ctx.fill();
+
+    // Label
+    ctx.shadowBlur = 0;
+    ctx.fillStyle = "#ffffff";
+    ctx.font = "14px sans-serif";
+    ctx.fillText(`x=${x} g/kg`, px + 12, py - 10);
+    ctx.fillText(`h=${h.toFixed(1)} kJ/kg`, px + 12, py + 10);
+}
