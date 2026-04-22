@@ -362,4 +362,3 @@ document.addEventListener("DOMContentLoaded", () => {
 
     drawHxPoint(null);
 });
-}
