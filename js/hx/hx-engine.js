@@ -351,7 +351,7 @@ function drawTemperatureLines(ctx, width, height) {
 
         ctx.stroke();
 
-        // Temperatur-Label sichtbar im Diagramm platzieren //
+        // Temperatur-Label sichtbar im Diagramm platzieren
         const xLabel = calcHumidityRatio(T, 60);
         const hLabel = calcEnthalpy(T, xLabel);
 
