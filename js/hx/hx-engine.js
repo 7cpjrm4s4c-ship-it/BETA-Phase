@@ -322,7 +322,6 @@ function drawHxPoint(state) {
     }
 
     ctx.stroke();
-}
 
     // Zustandspunkt nur wenn State vorhanden
     if (state && state.x !== undefined) {
@@ -351,3 +350,4 @@ function drawHxPoint(state) {
 document.addEventListener("DOMContentLoaded", () => {
     drawHxPoint(null);
 });
+}
