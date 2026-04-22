@@ -72,38 +72,6 @@ function renderHxState(state) {
 }
 
 // ===== BASIC RENDER =====
-function renderHxState(state) {
-  const out = document.getElementById("hx-debug");
-
-  if (!out) return;
-
-  out.innerText = `
-T: ${state.T ?? "-"}
-φ: ${state.phi ?? "-"}
-x: ${state.x ?? "-"}
-Mode: ${state.mode}
-  `;
-}
-
-const btnX = document.getElementById("mode-x");
-const btnRH = document.getElementById("mode-rh");
-const wrapX = document.getElementById("wrap-x");
-const wrapRH = document.getElementById("wrap-rh");
-
-function setMode(mode) {
-  if (mode === "x") {
-    btnX.classList.add("active");
-    btnRH.classList.remove("active");
-    wrapX.style.display = "block";
-    wrapRH.style.display = "none";
-  } else {
-    btnRH.classList.add("active");
-    btnX.classList.remove("active");
-    wrapRH.style.display = "block";
-    wrapX.style.display = "none";
-  }
-}
-
 btnX.onclick = () => setMode("x");
 btnRH.onclick = () => setMode("rh");
 
