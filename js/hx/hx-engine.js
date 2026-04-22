@@ -351,7 +351,7 @@ function drawTemperatureLines(ctx, width, height) {
 
         ctx.stroke();
 
-        // Temperatur-Label sichtbar im Diagramm platzieren
+        // Temperatur-Label sichtbar im Diagramm platzieren //
         const xLabel = calcHumidityRatio(T, 60);
         const hLabel = calcEnthalpy(T, xLabel);
 
@@ -369,6 +369,6 @@ function drawTemperatureLines(ctx, width, height) {
                       `${T}°C`,
                       pxLabel + 8,
                       pyLabel - 8
-                );
-         }
+                }
+         });
 }
