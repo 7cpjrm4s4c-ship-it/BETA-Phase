@@ -184,53 +184,59 @@ document.addEventListener("DOMContentLoaded", () => {
   drawHxPoint(null);
 });
 
-function drawHxPoint(state) {
-    console.log("drawHxPoint called:", state);
+function drawHxChart(state) {
     const canvas = document.getElementById("hxCanvas");
     if (!canvas) return;
 
     const ctx = canvas.getContext("2d");
 
-const width = canvas.clientWidth;
-const height = canvas.clientHeight;
-
-console.log("Canvas size:", width, height);
-
-canvas.width = width;
-canvas.height = height;
+    const width = canvas.clientWidth;
+    const height = canvas.clientHeight;
 
     canvas.width = width;
     canvas.height = height;
 
-    // Reset
+    drawBackground(ctx, width, height);
+    drawGrid(ctx, width, height);
+    drawSaturationCurve(ctx, width, height);
+    drawHumidityCurves(ctx, width, height);
+    drawAxes(ctx, width, height);
+
+    if (state) {
+        drawStatePoint(ctx, width, height, state);
+    }
+}
+
+function drawBackground(ctx, width, height) {
     ctx.clearRect(0, 0, width, height);
 
-    // Hintergrund
     ctx.fillStyle = "#050814";
     ctx.fillRect(0, 0, width, height);
+}
 
-    // Grid
+function drawGrid(ctx, width, height) {
     ctx.strokeStyle = "rgba(255,255,255,0.05)";
     ctx.lineWidth = 1;
 
-    for (let i = 0; i < width; i += 40) {
+    for (let x = 0; x < width; x += 40) {
         ctx.beginPath();
-        ctx.moveTo(i, 0);
-        ctx.lineTo(i, height);
+        ctx.moveTo(x, 0);
+        ctx.lineTo(x, height);
         ctx.stroke();
     }
 
-    for (let i = 0; i < height; i += 40) {
+    for (let y = 0; y < height; y += 40) {
         ctx.beginPath();
-        ctx.moveTo(0, i);
-        ctx.lineTo(width, i);
+        ctx.moveTo(0, y);
+        ctx.lineTo(width, y);
         ctx.stroke();
     }
+}
 
-    // Sättigungskurve
+function drawSaturationCurve(ctx, width, height) {
     ctx.beginPath();
-    ctx.strokeStyle = "#8ab4ff";
-    ctx.lineWidth = 3;
+    ctx.strokeStyle = "rgba(120,160,255,0.9)";
+    ctx.lineWidth = 2.5;
 
     let first = true;
 
@@ -238,45 +244,81 @@ canvas.height = height;
         const xSat = calcHumidityRatio(T, 100);
         const hSat = calcEnthalpy(T, xSat);
 
-        const pxSat = (xSat / 30) * width;
-        const pySat = height - (hSat / 70) * height;
+        const px = (xSat / 30) * width;
+        const py = height - (hSat / 70) * height;
 
         if (first) {
-            ctx.moveTo(pxSat, pySat);
+            ctx.moveTo(px, py);
             first = false;
         } else {
-            ctx.lineTo(pxSat, pySat);
+            ctx.lineTo(px, py);
         }
     }
 
     ctx.stroke();
+}
 
-    // Zustandspunkt nur wenn State vorhanden
-    if (state && state.x !== undefined) {
-        const x = state.x;
-        const h = calcEnthalpy(state.T, x);
+function drawHumidityCurves(ctx, width, height) {
+    const humidityLevels = [10, 20, 30, 40, 50, 60, 70, 80, 90];
 
-        const px = (x / 30) * width;
-        const py = height - (h / 70) * height;
-
-      console.log("Plot values:", {
-    x,
-    h,
-    px,
-    py
-});
-
+    humidityLevels.forEach(phi => {
         ctx.beginPath();
-        ctx.arc(px, py, 8, 0, Math.PI * 2);
-        ctx.fillStyle = "#6d63ff";
-        ctx.shadowColor = "#6d63ff";
-        ctx.shadowBlur = 20;
-        ctx.fill();
+        ctx.strokeStyle = "rgba(255,255,255,0.12)";
+        ctx.lineWidth = 1;
 
-        ctx.shadowBlur = 0;
-        ctx.fillStyle = "#ffffff";
-        ctx.font = "14px sans-serif";
+        let first = true;
 
+        for (let T = -10; T <= 50; T += 1) {
+            const x = calcHumidityRatio(T, phi);
+            const h = calcEnthalpy(T, x);
+
+            const px = (x / 30) * width;
+            const py = height - (h / 70) * height;
+
+            if (first) {
+                ctx.moveTo(px, py);
+                first = false;
+            } else {
+                ctx.lineTo(px, py);
+            }
+        }
+
+        ctx.stroke();
+    });
+}
+
+function drawAxes(ctx, width, height) {
+    ctx.fillStyle = "#ffffff";
+    ctx.font = "12px sans-serif";
+
+    ctx.fillText("x [g/kg]", width - 70, height - 10);
+    ctx.fillText("h [kJ/kg]", 10, 20);
+}
+
+function drawStatePoint(ctx, width, height, state) {
+    if (!state || state.x === undefined) return;
+
+    const x = state.x;
+    const h = calcEnthalpy(state.T, state.x);
+
+    const px = (x / 30) * width;
+    const py = height - (h / 70) * height;
+
+    ctx.beginPath();
+    ctx.arc(px, py, 8, 0, Math.PI * 2);
+
+    ctx.fillStyle = "#6d63ff";
+    ctx.shadowColor = "#6d63ff";
+    ctx.shadowBlur = 20;
+    ctx.fill();
+
+    ctx.shadowBlur = 0;
+    ctx.fillStyle = "#ffffff";
+    ctx.font = "14px sans-serif";
+
+    ctx.fillText(`x=${x} g/kg`, px + 12, py - 10);
+    ctx.fillText(`h=${h.toFixed(1)} kJ/kg`, px + 12, py + 10);
+}
         ctx.fillText(`x=${x} g/kg`, px + 12, py - 10);
         ctx.fillText(`h=${h.toFixed(1)} kJ/kg`, px + 12, py + 10);
     }
