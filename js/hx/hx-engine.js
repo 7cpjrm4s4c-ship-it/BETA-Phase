@@ -42,6 +42,18 @@ function setHxState() {
   const phi = Number(rhInput?.value);
   const x = Number(xInput?.value);
 
+console.log("tInput:", tInput);
+console.log("rhInput:", rhInput);
+console.log("xInput:", xInput);
+
+console.log("t raw:", tInput?.value);
+console.log("phi raw:", rhInput?.value);
+console.log("x raw:", xInput?.value);
+
+console.log("T parsed:", T);
+console.log("phi parsed:", phi);
+console.log("x parsed:", x);
+
   // MODE: T + φ oder T + x
   let state = {};
 
