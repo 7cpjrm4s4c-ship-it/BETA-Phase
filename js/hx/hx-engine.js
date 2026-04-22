@@ -258,6 +258,35 @@ function drawSaturationCurve(ctx, width, height) {
     ctx.stroke();
 }
 
+function drawTemperatureLines(ctx, width, height) {
+    const temperatures = [-20, -10, 0, 10, 20, 30, 40, 50];
+
+    temperatures.forEach(T => {
+        ctx.beginPath();
+        ctx.strokeStyle = "rgba(255,255,255,0.14)";
+        ctx.lineWidth = 1;
+
+        let first = true;
+
+        for (let phi = 5; phi <= 100; phi += 2) {
+            const x = calcHumidityRatio(T, phi);
+            const h = calcEnthalpy(T, x);
+
+            if (isNaN(x) || isNaN(h)) continue;
+
+            const px = (x / 30) * width;
+            const py = height - (h / 70) * height;
+
+            if (first) {
+                ctx.moveTo(px, py);
+                first = false;
+            } else {
+                ctx.lineTo(px, py);
+            }
+        }
+
+        ctx.stroke();
+
 function drawHumidityCurves(ctx, width, height) {
     const humidityLevels = [10, 20, 30, 40, 50, 60, 70, 80, 90];
 
@@ -295,50 +324,6 @@ function drawAxes(ctx, width, height) {
     ctx.fillText("h [kJ/kg]", 10, 20);
 }
 
-function drawStatePoint(ctx, width, height, state) {
-    if (!state || state.x === undefined) return;
-
-    const x = state.x;
-    const h = calcEnthalpy(state.T, x);
-
-    const px = (x / 30) * width;
-    const py = height - (h / 70) * height;
-
-    ctx.beginPath();
-    ctx.arc(px, py, 8, 0, Math.PI * 2);
-    ctx.fillStyle = "#6d63ff";
-    ctx.fill();
-}
-
-function drawTemperatureLines(ctx, width, height) {
-    const temperatures = [-20, -10, 0, 10, 20, 30, 40, 50];
-
-    temperatures.forEach(T => {
-        ctx.beginPath();
-        ctx.strokeStyle = "rgba(255,255,255,0.14)";
-        ctx.lineWidth = 1;
-
-        let first = true;
-
-        for (let phi = 5; phi <= 100; phi += 2) {
-            const x = calcHumidityRatio(T, phi);
-            const h = calcEnthalpy(T, x);
-
-            if (isNaN(x) || isNaN(h)) continue;
-
-            const px = (x / 30) * width;
-            const py = height - (h / 70) * height;
-
-            if (first) {
-                ctx.moveTo(px, py);
-                first = false;
-            } else {
-                ctx.lineTo(px, py);
-            }
-        }
-
-        ctx.stroke();
-
 // Temperatur-Label sichtbar im Diagramm platzieren
 const xLabel = calcHumidityRatio(T, 60);
 const hLabel = calcEnthalpy(T, xLabel);
@@ -362,6 +347,21 @@ if (!isNaN(xLabel) && !isNaN(hLabel)) {
             pyLabel - 8
         );
     }
+} 
+
+function drawStatePoint(ctx, width, height, state) {
+    if (!state || state.x === undefined) return;
+
+    const x = state.x;
+    const h = calcEnthalpy(state.T, x);
+
+    const px = (x / 30) * width;
+    const py = height - (h / 70) * height;
+
+    ctx.beginPath();
+    ctx.arc(px, py, 8, 0, Math.PI * 2);
+    ctx.fillStyle = "#6d63ff";
+    ctx.fill();
 }
 });
 }
