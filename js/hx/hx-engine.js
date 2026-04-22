@@ -78,6 +78,7 @@ function calcHumidityRatio(T, phi) {
 
 // ===== SET STATE =====
 function setHxState() {
+  console.log("BUTTON CLICK WORKS");
   const tInput = document.getElementById("hx-temp");
   const rhInput = document.getElementById("hx-rh");
   const xInput = document.getElementById("hx-x");
@@ -260,6 +261,8 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   btn.addEventListener("click", setHxState);
+
+  drawHxPoint(null);
 });
 
 function drawHxPoint(state) {
@@ -350,4 +353,3 @@ function drawHxPoint(state) {
 document.addEventListener("DOMContentLoaded", () => {
     drawHxPoint(null);
 });
-}
