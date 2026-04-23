@@ -1,388 +1,316 @@
-// ===== SAFE NUMBER PARSER =====
+// hx-engine-complete.js
+// Vollständige Basisversion für h,x-Diagramm + Zustandsberechnung + Zielzustand
+// + Luftbehandlung + PDF Export (A4 Hochformat)
+// UI ist auf bestehendes Layout abgestimmt.
+
+// =====================================================
+// SAFE NUMBER PARSER
+// =====================================================
+
 function num(v) {
-  if (v === null || v === undefined) return NaN;
+  if (v === undefined || v === null) return NaN;
+  return parseFloat(String(v).replace(',', '.'));
+}
 
-  const n = parseFloat(
-    String(v)
-      .replace(/−|–|--/g, "-")
-      .replace(",", ".")
-      .trim()
-  );
+// =====================================================
+// THERMODYNAMIK
+// =====================================================
 
-  return isNaN(n) ? NaN : n;
+function calcHumidityRatio(T, phi) {
+  const pws = 610.94 * Math.exp((17.625 * T) / (T + 243.04));
+  const pw = (phi / 100) * pws;
+  const p = 101325;
+  const x = 0.622 * pw / (p - pw);
+  return +(x * 1000).toFixed(2); // g/kg
+}
+
+function calcRelativeHumidity(T, x) {
+  const xkg = x / 1000;
+  const p = 101325;
+  const pw = (xkg * p) / (0.622 + xkg);
+  const pws = 610.94 * Math.exp((17.625 * T) / (T + 243.04));
+  return +((pw / pws) * 100).toFixed(1);
 }
 
 function calcEnthalpy(T, x) {
-    /*
-    T = Temperatur in °C
-    x = Feuchtegehalt in g/kg
-    Rückgabe:
-    h = Enthalpie in kJ/kg
-    */
-
-    if (
-        T === undefined ||
-        x === undefined ||
-        isNaN(T) ||
-        isNaN(x)
-    ) {
-        return 0;
-    }
-
-    // x von g/kg → kg/kg
-    const xkg = x / 1000;
-
-    // Standard-Näherung nach Mollier
-    return 1.006 * T + xkg * (2501 + 1.86 * T);
+  const xkg = x / 1000;
+  return +(1.006 * T + xkg * (2501 + 1.86 * T)).toFixed(1);
 }
 
-// ===== GLOBAL STATE =====
-let currentState = null;
+// =====================================================
+// GLOBAL STATE
+// =====================================================
 
-function calcHumidityRatio(T, phi) {
-    /*
-    T = Temperatur in °C
-    phi = relative Feuchte in %
-    Rückgabe:
-    x = Feuchtegehalt in g/kg
-    */
+let startState = null;
+let targetState = null;
 
-    if (
-        T === undefined ||
-        phi === undefined ||
-        isNaN(T) ||
-        isNaN(phi)
-    ) {
-        return 0;
-    }
+// =====================================================
+// SET START STATE
+// =====================================================
 
-    // Sättigungsdampfdruck (Magnus Formel)
-    const pws =
-        6.112 * Math.exp(
-            (17.62 * T) / (243.12 + T)
-        );
-
-    // Partialdruck Wasserdampf
-    const pw = (phi / 100) * pws;
-
-    // Luftdruck Standard
-    const p = 1013.25;
-
-    // Feuchtegehalt kg/kg
-    const x =
-        0.622 * pw / (p - pw);
-
-    // → g/kg
-    return +(x * 1000).toFixed(2);
-}
-
-// ===== SET STATE =====
 function setHxState() {
-  console.log("BUTTON CLICK WORKS");
-  const tInput = document.getElementById("hx-temp");
-  const rhInput = document.getElementById("hx-rh");
-  const xInput = document.getElementById("hx-x");
+  const modePhi = document.getElementById('mode-phi');
 
-const T = tInput?.value.trim() === ""
-    ? NaN
-    : Number(tInput.value);
+  const T = num(document.getElementById('hx-temp').value);
+  const rh = num(document.getElementById('hx-rh').value);
+  const xInput = num(document.getElementById('hx-x').value);
 
-const phi = rhInput?.value.trim() === ""
-    ? NaN
-    : Number(rhInput.value);
+  if (isNaN(T)) return;
 
-const x = xInput?.value.trim() === ""
-    ? NaN
-    : Number(xInput.value);
+  let phi;
+  let x;
 
-console.log("tInput:", tInput);
-console.log("rhInput:", rhInput);
-console.log("xInput:", xInput);
-
-console.log("t raw:", tInput?.value);
-console.log("phi raw:", rhInput?.value);
-console.log("x raw:", xInput?.value);
-
-console.log("T parsed:", T);
-console.log("phi parsed:", phi);
-console.log("x parsed:", x);
-
-  // MODE: T + φ oder T + x
-  let state = {};
-
-  if (!isNaN(T) && !isNaN(phi)) {
-
-   const xCalc = calcHumidityRatio(T, phi);
-
-   state = {
-      T,
-      phi,
-      x: xCalc,
-      mode: "T_phi"
-   };
-
-} else if (!isNaN(T) && !isNaN(x)) {
-
-   state = {
-      T,
-      x,
-      mode: "T_x"
-   };
-
-} else {
-   console.warn("Ungültiger Zustand");
-   return;
-}
-
-  currentState = state;
-
-  console.log("STATE SET:", state);
-
-  renderHxState(state);
-}
-
-function renderHxState(state) {
-    if (!state) return;
-
-    document.getElementById("state-temp").textContent =
-        `${state.T ?? "--"} °C`;
-
-    document.getElementById("state-rh").textContent =
-        `${state.phi ?? "--"} %`;
-
-    document.getElementById("state-x").textContent =
-        `${state.x ?? "--"} g/kg`;
-
-    let h = "--";
-
-    if (
-        state.T !== undefined &&
-        state.x !== undefined &&
-        !isNaN(state.T) &&
-        !isNaN(state.x)
-    ) {
-        h = calcEnthalpy(state.T, state.x).toFixed(1);
-    }
-
-    document.getElementById("state-h").textContent =
-        `${h} kJ/kg`;
-
-    drawHxChart(state);
-}
-
-// ===== EVENT BINDING =====
-document.addEventListener("DOMContentLoaded", () => {
-  const btn = document.getElementById("hx-set");
-
-  if (!btn) {
-    console.warn("hx-set button not found");
-    return;
+  if (modePhi && modePhi.classList.contains('active')) {
+    if (isNaN(rh)) return;
+    phi = rh;
+    x = calcHumidityRatio(T, phi);
+  } else {
+    if (isNaN(xInput)) return;
+    x = xInput;
+    phi = calcRelativeHumidity(T, x);
   }
 
-  btn.addEventListener("click", setHxState);
+  startState = {
+    T,
+    phi,
+    x,
+    h: calcEnthalpy(T, x)
+  };
 
-  drawHxChart(null);
-});
+  renderStartState();
+  drawHxChart();
+}
 
-function drawHxChart(state) {
-    const canvas = document.getElementById("hxCanvas");
-    if (!canvas) return;
+// =====================================================
+// SET TARGET STATE
+// =====================================================
 
-    const ctx = canvas.getContext("2d");
+function setTargetState() {
+  const T = num(document.getElementById('target-temp').value);
+  const phi = num(document.getElementById('target-rh').value);
 
-    const width = canvas.clientWidth;
-    const height = canvas.clientHeight;
+  if (isNaN(T) || isNaN(phi)) return;
 
-    canvas.width = width;
-    canvas.height = height;
+  const x = calcHumidityRatio(T, phi);
 
-    drawBackground(ctx, width, height);
-    drawGrid(ctx, width, height);
-    drawSaturationCurve(ctx, width, height);
-    drawTemperatureLines(ctx, width, height);
-    drawAxes(ctx, width, height);
+  targetState = {
+    T,
+    phi,
+    x,
+    h: calcEnthalpy(T, x)
+  };
 
-    if (state) {
-        drawStatePoint(ctx, width, height, state);
-    }
+  renderProcessSteps();
+  drawHxChart();
+}
+
+// =====================================================
+// RENDER STATE
+// =====================================================
+
+function renderStartState() {
+  if (!startState) return;
+
+  setText('state-temp', `${startState.T} °C`);
+  setText('state-rh', `${startState.phi} %`);
+  setText('state-x', `${startState.x} g/kg`);
+  setText('state-h', `${startState.h} kJ/kg`);
+}
+
+function setText(id, value) {
+  const el = document.getElementById(id);
+  if (el) el.textContent = value;
+}
+
+// =====================================================
+// LUFTBEHANDLUNG
+// =====================================================
+
+function renderProcessSteps() {
+  const box = document.getElementById('process-result');
+  if (!box || !startState || !targetState) return;
+
+  const deltaT = +(targetState.T - startState.T).toFixed(1);
+  const deltaX = +(targetState.x - startState.x).toFixed(2);
+
+  let action = 'Keine Änderung';
+
+  if (deltaT > 0) action = 'Heizen';
+  if (deltaT < 0) action = 'Kühlen';
+  if (deltaX > 0) action += ' + Befeuchten';
+  if (deltaX < 0) action += ' + Entfeuchten';
+
+  box.innerHTML = `
+    <div><strong>Start:</strong> ${startState.T} °C / ${startState.phi} %</div>
+    <div><strong>Ziel:</strong> ${targetState.T} °C / ${targetState.phi} %</div>
+    <div><strong>Prozess:</strong> ${action}</div>
+    <div><strong>ΔT:</strong> ${deltaT} K</div>
+    <div><strong>Δx:</strong> ${deltaX} g/kg</div>
+  `;
+}
+
+// =====================================================
+// CHART MASTER
+// =====================================================
+
+function drawHxChart() {
+  const canvas = document.getElementById('hxCanvas');
+  if (!canvas) return;
+
+  const ctx = canvas.getContext('2d');
+  const width = canvas.clientWidth;
+  const height = canvas.clientHeight;
+
+  canvas.width = width;
+  canvas.height = height;
+
+  drawBackground(ctx, width, height);
+  drawGrid(ctx, width, height);
+  drawSaturationCurve(ctx, width, height);
+  drawTemperatureLines(ctx, width, height);
+  drawAxes(ctx, width, height);
+
+  if (startState) drawStatePoint(ctx, width, height, startState, '#6d63ff');
+  if (targetState) drawStatePoint(ctx, width, height, targetState, '#32d296');
 }
 
 function drawBackground(ctx, width, height) {
-    ctx.clearRect(0, 0, width, height);
-
-    ctx.fillStyle = "#050814";
-    ctx.fillRect(0, 0, width, height);
+  ctx.clearRect(0, 0, width, height);
+  ctx.fillStyle = '#050814';
+  ctx.fillRect(0, 0, width, height);
 }
 
 function drawGrid(ctx, width, height) {
-    ctx.strokeStyle = "rgba(255,255,255,0.05)";
-    ctx.lineWidth = 1;
+  ctx.strokeStyle = 'rgba(255,255,255,0.05)';
+  ctx.lineWidth = 1;
 
-    for (let x = 0; x < width; x += 40) {
-        ctx.beginPath();
-        ctx.moveTo(x, 0);
-        ctx.lineTo(x, height);
-        ctx.stroke();
-    }
+  for (let x = 0; x < width; x += 40) {
+    ctx.beginPath();
+    ctx.moveTo(x, 0);
+    ctx.lineTo(x, height);
+    ctx.stroke();
+  }
 
-    for (let y = 0; y < height; y += 40) {
-        ctx.beginPath();
-        ctx.moveTo(0, y);
-        ctx.lineTo(width, y);
-        ctx.stroke();
-    }
+  for (let y = 0; y < height; y += 40) {
+    ctx.beginPath();
+    ctx.moveTo(0, y);
+    ctx.lineTo(width, y);
+    ctx.stroke();
+  }
 }
 
 function drawSaturationCurve(ctx, width, height) {
-    ctx.beginPath();
-    ctx.strokeStyle = "rgba(120,160,255,0.9)";
-    ctx.lineWidth = 2.5;
+  ctx.beginPath();
+  ctx.strokeStyle = '#7aa2ff';
+  ctx.lineWidth = 3;
 
-    let first = true;
+  let first = true;
 
-    for (let T = -10; T <= 50; T += 1) {
-        const xSat = calcHumidityRatio(T, 100);
-        const hSat = calcEnthalpy(T, xSat);
+  for (let T = -10; T <= 50; T += 1) {
+    const x = calcHumidityRatio(T, 100);
+    const h = calcEnthalpy(T, x);
 
-        const px = (xSat / 30) * width;
-        const py = height - (hSat / 70) * height;
+    const px = (x / 30) * width;
+    const py = height - (h / 100) * height;
 
-        if (first) {
-            ctx.moveTo(px, py);
-            first = false;
-        } else {
-            ctx.lineTo(px, py);
-        }
+    if (first) {
+      ctx.moveTo(px, py);
+      first = false;
+    } else {
+      ctx.lineTo(px, py);
     }
+  }
 
-    ctx.stroke();
+  ctx.stroke();
 }
 
 function drawTemperatureLines(ctx, width, height) {
-    const temperatures = [-20, -10, 0, 10, 20, 30, 40, 50];
+  const temperatures = [-10, 0, 10, 20, 30, 40, 50];
 
-    temperatures.forEach(T => {
-        ctx.beginPath();
-        ctx.strokeStyle = "rgba(255,255,255,0.14)";
-        ctx.lineWidth = 1;
+  temperatures.forEach(T => {
+    ctx.beginPath();
+    ctx.strokeStyle = 'rgba(255,255,255,0.12)';
+    ctx.lineWidth = 1;
 
-        let first = true;
+    let first = true;
 
-        for (let phi = 5; phi <= 100; phi += 2) {
-            const x = calcHumidityRatio(T, phi);
-            const h = calcEnthalpy(T, x);
+    for (let phi = 5; phi <= 100; phi += 2) {
+      const x = calcHumidityRatio(T, phi);
+      const h = calcEnthalpy(T, x);
 
-            if (isNaN(x) || isNaN(h)) continue;
+      const px = (x / 30) * width;
+      const py = height - (h / 100) * height;
 
-            const px = (x / 30) * width;
-            const py = height - (h / 70) * height;
+      if (first) {
+        ctx.moveTo(px, py);
+        first = false;
+      } else {
+        ctx.lineTo(px, py);
+      }
+    }
 
-            if (first) {
-                ctx.moveTo(px, py);
-                first = false;
-            } else {
-                ctx.lineTo(px, py);
-            }
-        }
-
-        ctx.stroke();
-
-function drawHumidityCurves(ctx, width, height) {
-    const humidityLevels = [10, 20, 30, 40, 50, 60, 70, 80, 90];
-
-    humidityLevels.forEach(phi => {
-        ctx.beginPath();
-        ctx.strokeStyle = "rgba(255,255,255,0.12)";
-        ctx.lineWidth = 1;
-
-        let first = true;
-
-        for (let T = -10; T <= 50; T += 1) {
-            const x = calcHumidityRatio(T, phi);
-            const h = calcEnthalpy(T, x);
-
-            const px = (x / 30) * width;
-            const py = height - (h / 70) * height;
-
-            if (first) {
-                ctx.moveTo(px, py);
-                first = false;
-            } else {
-                ctx.lineTo(px, py);
-            }
-        }
-
-        ctx.stroke();
-    });
+    ctx.stroke();
+  });
 }
 
 function drawAxes(ctx, width, height) {
-    ctx.fillStyle = "#ffffff";
-    ctx.font = "12px sans-serif";
-
-    ctx.fillText("x [g/kg]", width - 70, height - 10);
-    ctx.fillText("h [kJ/kg]", 10, 20);
+  ctx.fillStyle = '#ffffff';
+  ctx.font = '12px sans-serif';
+  ctx.fillText('x [g/kg]', width - 70, height - 10);
+  ctx.fillText('h [kJ/kg]', 10, 20);
 }
 
-function projectHX(x, h, width, height) {
-    /*
-    Mollier-Projektion (vereinfachte echte Geometrie)
+function drawStatePoint(ctx, width, height, state, color) {
+  const px = (state.x / 30) * width;
+  const py = height - (state.h / 100) * height;
 
-    x = Feuchtegehalt [g/kg]
-    h = Enthalpie [kJ/kg]
-
-    Ziel:
-    - x horizontal
-    - h diagonal/schräg wie im echten h,x-Diagramm
-    */
-
-    const xMax = 30;   // g/kg
-    const hMax = 100;  // kJ/kg
-
-    // horizontale Position
-    const px = (x / xMax) * width;
-
-    /*
-    Vertikale Projektion:
-
-    echtes Mollier:
-    h-Achse ist schräg → daher Offset über x
-
-    je weiter rechts (mehr x),
-    desto stärker verschiebt sich h nach unten
-    */
-
-    const skewFactor = 7; // später feinjustieren
-
-    const py =
-        height
-        - (h / hMax) * height
-        + (x * skewFactor);
-
-    return { px, py };
+  ctx.beginPath();
+  ctx.arc(px, py, 8, 0, Math.PI * 2);
+  ctx.fillStyle = color;
+  ctx.fill();
 }
 
-function drawStatePoint(ctx, width, height, state) {
-    if (!state || state.x === undefined) return;
+// =====================================================
+// PDF EXPORT
+// =====================================================
 
-    const x = state.x;
-    const h = calcEnthalpy(state.T, x);
+function exportHxPdf() {
+  if (!window.jspdf) return;
 
-    const { px, py } = projectHX(x, h, width, height);
+  const { jsPDF } = window.jspdf;
+  const pdf = new jsPDF({
+    orientation: 'portrait',
+    unit: 'mm',
+    format: 'a4'
+  });
 
-    ctx.beginPath();
-    ctx.arc(px, py, 8, 0, Math.PI * 2);
-    ctx.fillStyle = "#6d63ff";
-    ctx.shadowColor = "#6d63ff";
-    ctx.shadowBlur = 20;
-    ctx.fill();
+  pdf.setFontSize(16);
+  pdf.text('Massenstromrechner – h,x-Auswertung', 20, 20);
 
-    ctx.shadowBlur = 0;
-    ctx.fillStyle = "#ffffff";
-    ctx.font = "14px sans-serif";
+  if (startState) {
+    pdf.setFontSize(12);
+    pdf.text(`Startzustand: ${startState.T} °C | ${startState.phi} % | ${startState.x} g/kg`, 20, 35);
+  }
 
-    ctx.fillText(`x=${x.toFixed(2)} g/kg`, px + 12, py - 10);
-    ctx.fillText(`h=${h.toFixed(1)} kJ/kg`, px + 12, py + 10);
+  if (targetState) {
+    pdf.text(`Zielzustand: ${targetState.T} °C | ${targetState.phi} % | ${targetState.x} g/kg`, 20, 45);
+  }
+
+  pdf.save('hx-auswertung.pdf');
 }
+
+// =====================================================
+// INIT
+// =====================================================
+
+document.addEventListener('DOMContentLoaded', () => {
+  const setBtn = document.getElementById('hx-set');
+  const targetBtn = document.getElementById('target-set');
+  const pdfBtn = document.getElementById('pdf-export');
+
+  if (setBtn) setBtn.addEventListener('click', setHxState);
+  if (targetBtn) targetBtn.addEventListener('click', setTargetState);
+  if (pdfBtn) pdfBtn.addEventListener('click', exportHxPdf);
+
+  drawHxChart();
 });
-}
