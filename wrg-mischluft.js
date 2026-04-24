@@ -157,25 +157,29 @@ function calcMix() {
   const x1 = _x(T1, ph1), h1 = _h(T1, x1);
   const x2 = _x(T2, ph2), h2 = _h(T2, x2);
 
+  // Massenströme für physikalisch korrekte Zustandsmischung
   const rho1 = _rho(T1), rho2 = _rho(T2);
-  const m1   = vol1 * rho1;      // kg/h
-  const m2   = vol2 * rho2;      // kg/h
+  const m1   = vol1 * rho1;    // kg/h
+  const m2   = vol2 * rho2;    // kg/h
   const mM   = m1 + m2;
 
+  // Zustandsgrößen: massengewichtet (physikalisch korrekt)
   const xM = (m1 * x1 + m2 * x2) / mM;
   const hM = (m1 * h1 + m2 * h2) / mM;
   const TM = (hM - xM / 1000 * 2501) / (1.006 + xM / 1000 * 1.86);
   const phM = _phi(TM, xM);
-  const rhoM = _rho(TM);
-  const volM = mM / rhoM;
+
+  // Gesamtvolumenstrom: direkte Volumensumme (praxisüblich im HLK-Bereich)
+  const volM = vol1 + vol2;
+  const rhoM = _rho(TM); // für Anzeige
 
   const s1 = { T: T1, phi: ph1, x: x1, h: h1 };
   const s2 = { T: T2, phi: ph2, x: x2, h: h2 };
   const sM = { T: +TM.toFixed(1), phi: phM, x: +xM.toFixed(2), h: +hM.toFixed(1) };
 
-  // Anteile
-  const a1 = (m1 / mM * 100).toFixed(0);
-  const a2 = (m2 / mM * 100).toFixed(0);
+  // Anteile nach Volumenstrom
+  const a1 = (vol1 / volM * 100).toFixed(0);
+  const a2 = (vol2 / volM * 100).toFixed(0);
 
   el.innerHTML = `
     <div style="margin-bottom:10px;padding:12px 14px;

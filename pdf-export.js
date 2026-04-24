@@ -151,37 +151,70 @@ function triggerPdfPrint() {
    PRINT-FENSTER ÖFFNEN
 ─────────────────────────────────────── */
 function _openPrintWindow(bodyHtml) {
-  const win = window.open('', '_blank', 'width=900,height=700');
-  if (!win) {
-    alert('Popup blockiert \u2014 bitte Popups f\u00fcr diese Seite erlauben.');
-    return;
-  }
-  const closeBtn = `
-    <div class="no-print" style="
-      position:fixed;top:12px;right:14px;z-index:999;
-      display:flex;gap:8px;align-items:center">
-      <button onclick="window.print()" style="
-        background:#1a3a5c;color:#fff;border:none;border-radius:8px;
-        padding:8px 16px;font-size:13px;font-weight:700;cursor:pointer;
-        font-family:Arial,sans-serif">
-        &#128438; Drucken / Als PDF speichern
-      </button>
-      <button onclick="window.close()" style="
-        background:#e0e6ef;color:#333;border:none;border-radius:8px;
-        padding:8px 14px;font-size:13px;font-weight:700;cursor:pointer;
-        font-family:Arial,sans-serif">
-        &#10005; Schlie&szlig;en
+  // In-page overlay — works on iOS Safari (no window.open needed)
+  const PRINT_ID = 'msr-print-overlay';
+  document.getElementById(PRINT_ID)?.remove();
+
+  const overlay = document.createElement('div');
+  overlay.id = PRINT_ID;
+
+  const printStyles = _printCSS();
+
+  overlay.innerHTML = `
+    <div class="msr-pbar">
+      <button class="msr-pbtn-close" id="msr-close-pdf">&#10005; Schlie&szlig;en</button>
+      <button class="msr-pbtn-print" onclick="window.print()">
+        &#128438;&nbsp;Drucken&nbsp;/&nbsp;PDF
       </button>
     </div>
-    <div class="no-print" style="height:48px"></div>`;
+    <div class="msr-pcontent">${bodyHtml}</div>`;
 
-  win.document.open();
-  win.document.write(`<!DOCTYPE html><html lang="de"><head>
-<meta charset="UTF-8"/>
-<title>Massenstromrechner \u2014 Ausdruck</title>
-<style>${_printCSS()}</style>
-</head><body>${closeBtn}${bodyHtml}</body></html>`);
-  win.document.close();
+  // Styling
+  const styleEl = document.createElement('style');
+  styleEl.textContent = `
+    #msr-print-overlay {
+      position:fixed;inset:0;z-index:9999;
+      background:#f4f6fa;overflow-y:auto;
+      font-family:Arial,Helvetica,sans-serif;
+    }
+    .msr-pbar {
+      position:sticky;top:0;background:#fff;
+      border-bottom:1px solid #dde3ee;
+      padding:10px 16px;display:flex;gap:8px;align-items:center;
+      box-shadow:0 2px 8px rgba(0,0,0,.10);z-index:2;
+    }
+    .msr-pbtn-print {
+      flex:1;background:#1a3a5c;color:#fff;border:none;
+      border-radius:8px;padding:10px 18px;
+      font-size:14px;font-weight:700;cursor:pointer;font-family:Arial,sans-serif;
+    }
+    .msr-pbtn-close {
+      background:#e8edf5;color:#333;border:none;
+      border-radius:8px;padding:10px 14px;
+      font-size:14px;font-weight:700;cursor:pointer;font-family:Arial,sans-serif;
+    }
+    .msr-pcontent {
+      padding:16px;max-width:800px;margin:0 auto;background:#fff;
+      margin-top:12px;margin-bottom:20px;
+      box-shadow:0 2px 12px rgba(0,0,0,.08);border-radius:4px;
+    }
+    @media print {
+      #msr-print-overlay { position:static!important; background:white!important; }
+      .msr-pbar { display:none!important; }
+      .msr-pcontent { padding:0!important;margin:0!important;box-shadow:none!important; }
+      body > *:not(#msr-print-overlay) { display:none!important; }
+      ${printStyles}
+    }`;
+  document.head.appendChild(styleEl);
+  overlay._styleEl = styleEl;
+
+  document.body.appendChild(overlay);
+  overlay.scrollTop = 0;
+
+  document.getElementById('msr-close-pdf')?.addEventListener('click', () => {
+    styleEl.remove();
+    document.getElementById(PRINT_ID)?.remove();
+  });
 }
 
 /* ───────────────────────────────────────
