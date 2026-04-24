@@ -152,6 +152,7 @@ function triggerPdfPrint() {
   else if (activeTab === 'luft') html = _buildLuftPage(meta);
   else if (activeTab === 'pipe') html = _buildPipePage(meta);
   else if (activeTab === 'hx')   html = _buildHxPage(meta);
+  else if (activeTab === 'wrg')  html = _buildWrgPage(meta);
   else                           html = _buildFlowPage(meta);
 
   _openPrintWindow(html);
@@ -169,6 +170,15 @@ function _openPrintWindow(bodyHtml) {
   overlay.id = PRINT_ID;
 
   const printStyles = _printCSS();
+
+  // Inject print CSS into document head (for window.print())
+  const existStyle = document.getElementById('msr-print-css');
+  if (existStyle) existStyle.remove();
+  const headStyle = document.createElement('style');
+  headStyle.id = 'msr-print-css';
+  headStyle.textContent = printStyles;
+  document.head.appendChild(headStyle);
+  overlay._headStyle = headStyle;
 
   overlay.innerHTML = `
     <div class="msr-pbar">
@@ -225,6 +235,7 @@ function _openPrintWindow(bodyHtml) {
 
   document.getElementById('msr-close-pdf')?.addEventListener('click', () => {
     styleEl.remove();
+    overlay._headStyle?.remove();
     document.getElementById(PRINT_ID)?.remove();
   });
 }
@@ -619,6 +630,65 @@ function _buildPipePage(meta) {
     Stahl ≤ DN50: DIN EN 10255 Reihe M · ≥ DN65: DIN EN 10220 ·
     Mapress Edelstahl 1.4401: DIN EN 10312 · max. DN 100 ·
     Darcy-Weisbach · Colebrook-White
+  </p>`;
+}
+
+
+/* ───────────────────────────────────────
+   TAB: WRG / MISCHLUFT
+─────────────────────────────────────── */
+function _buildWrgPage(meta) {
+  // WRG Eingaben lesen
+  const T_ab  = document.getElementById('wrg-ab-t')?.value || '–';
+  const ph_ab = document.getElementById('wrg-ab-phi')?.value || '–';
+  const T_au  = document.getElementById('wrg-au-t')?.value || '–';
+  const ph_au = document.getElementById('wrg-au-phi')?.value || '–';
+  const eta   = document.getElementById('wrg-eta')?.value || '–';
+
+  // WRG Ergebnis
+  const wrgResult = document.getElementById('wrg-result')?.innerText || '–';
+
+  // Mischluft Eingaben
+  const T1   = document.getElementById('mix-ls1-t')?.value || '–';
+  const ph1  = document.getElementById('mix-ls1-phi')?.value || '–';
+  const vol1 = document.getElementById('mix-ls1-vol')?.value || '–';
+  const T2   = document.getElementById('mix-ls2-t')?.value || '–';
+  const ph2  = document.getElementById('mix-ls2-phi')?.value || '–';
+  const vol2 = document.getElementById('mix-ls2-vol')?.value || '–';
+
+  // Mischluft Ergebnis
+  const mixResult = document.getElementById('mix-result')?.innerText || '–';
+
+  return `
+  ${_header(meta, 'WRG & Mischluft')}
+
+  <div class="sec">Wärmerückgewinnung (WRG) — Eingaben</div>
+  <table>
+    <thead><tr><th>Größe</th><th>Abluft (LS1)</th><th>Außenluft (LS2)</th></tr></thead>
+    <tbody>
+      <tr><td>Temperatur T</td><td class="num">${_fmt(T_ab)} °C</td><td class="num">${_fmt(T_au)} °C</td></tr>
+      <tr><td>Rel. Feuchte φ</td><td class="num">${_fmt(ph_ab)} %</td><td class="num">${_fmt(ph_au)} %</td></tr>
+      <tr><td>Temperaturwirkungsgrad η</td><td colspan="2" class="num">${_fmt(eta)} %</td></tr>
+    </tbody>
+  </table>
+
+  <div class="sec">WRG — Ergebnis</div>
+  <p style="font-size:8pt;color:#444;line-height:1.6">${wrgResult}</p>
+
+  <div class="sec" style="margin-top:12px">Luftmischung (Mischluft) — Eingaben</div>
+  <table>
+    <thead><tr><th>Größe</th><th>Luftstrom 1 (LS1)</th><th>Luftstrom 2 (LS2)</th></tr></thead>
+    <tbody>
+      <tr><td>Temperatur T</td><td class="num">${_fmt(T1)} °C</td><td class="num">${_fmt(T2)} °C</td></tr>
+      <tr><td>Rel. Feuchte φ</td><td class="num">${_fmt(ph1)} %</td><td class="num">${_fmt(ph2)} %</td></tr>
+      <tr><td>Volumenstrom V̇</td><td class="num">${_fmt(vol1)} m³/h</td><td class="num">${_fmt(vol2)} m³/h</td></tr>
+    </tbody>
+  </table>
+
+  <div class="sec">Mischluft — Ergebnis</div>
+  <p style="font-size:8pt;color:#444;line-height:1.6">${mixResult}</p>
+  <p style="font-size:7pt;color:#aaa;margin-top:4px">
+    Plattenwärmetauscher (sensibel) · massengewichtete Mischung
   </p>`;
 }
 

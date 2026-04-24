@@ -90,8 +90,9 @@ async function cacheFirst(request) {
   const networkResponse = await fetchPromise;
   if (networkResponse) return networkResponse;
 
-  // Offline + kein Cache → Fallback auf index.html (SPA-Fallback)
-  return cache.match('/index.html');
+  // Offline + kein Cache → Fallback nur für Navigation (nicht für JS/CSS/API)
+  if (request.mode === 'navigate') return cache.match('/index.html');
+  return new Response('', { status: 408 }); // Timeout für Assets
 }
 
 /* ─── MESSAGE — Sofortiger Update-Trigger aus index.html ─── */

@@ -113,7 +113,7 @@ document.addEventListener('DOMContentLoaded', () => {
   $('plus-overlay')?.addEventListener('click', closePlusSheet);
 
   // Plus Sheet Items
-  ['pipe','wrg'].forEach(id => {
+  ['pipe','unit','wrg'].forEach(id => {
     $('plus-' + id)?.addEventListener('click', () => _switchFromPlus(id));
   });
   // Note: plus-hx removed — h,x is now in main pill

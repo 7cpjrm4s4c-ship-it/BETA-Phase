@@ -449,23 +449,25 @@ function _drawHover(ctx, W, H, s) {
 }
 
 /* ─── HILFSFUNKTIONEN ─── */
-function _rr(ctx, x, y, w, h, r) {
-  ctx.beginPath();
-  ctx.moveTo(x+r,y); ctx.lineTo(x+w-r,y); ctx.quadraticCurveTo(x+w,y,x+w,y+r);
-  ctx.lineTo(x+w,y+h-r); ctx.quadraticCurveTo(x+w,y+h,x+w-r,y+h);
-  ctx.lineTo(x+r,y+h); ctx.quadraticCurveTo(x,y+h,x,y+h-r);
-  ctx.lineTo(x,y+r); ctx.quadraticCurveTo(x,y,x+r,y); ctx.closePath();
-}
+/* _rr() removed — no longer used after tooltip removal */
 
-/* ─── ± VORZEICHEN TOGGLE ─── */
+/* ─── ± VORZEICHEN TOGGLE (unified — used by hx-engine + wrg-mischluft) ──
+   Global so it's accessible from both modules and inline onclick handlers */
 function toggleTempSign(inputId) {
   const inp = document.getElementById(inputId);
   if (!inp) return;
-  const v = parseFloat(String(inp.value).replace(',', '.').trim());
-  if (isNaN(v) || v === 0) return;
+  const raw = String(inp.value).replace(',', '.').trim();
+  const v   = parseFloat(raw);
+  if (isNaN(v) || v === 0) {
+    if (!raw.startsWith('-')) inp.value = '-';
+    inp.focus(); return;
+  }
   inp.value = String(-v).replace('.', ',');
-  inp.dispatchEvent(new Event('input', { bubbles: true }));
+  inp.dispatchEvent(new Event('input',  { bubbles: true }));
+  inp.dispatchEvent(new Event('change', { bubbles: true }));
 }
+// Alias for WRG module — both point to same function
+const wrgToggleSign = toggleTempSign;
 
 /* ─── ZUSTAND SETZEN ─── */
 function setHxState() {

@@ -1,21 +1,5 @@
 
-/* ─── ± VORZEICHEN für WRG Außenluft ─── */
-function wrgToggleSign(inputId) {
-  const inp = document.getElementById(inputId);
-  if (!inp) return;
-  const raw = String(inp.value).replace(',', '.').trim();
-  const v = parseFloat(raw);
-  if (isNaN(v) || v === 0) {
-    // No value yet — insert minus as prefix
-    if (!raw.startsWith('-')) inp.value = '-';
-    inp.focus();
-    return;
-  }
-  inp.value = String(-v).replace('.', ',');
-  inp.dispatchEvent(new Event('input', { bubbles: true }));
-  inp.dispatchEvent(new Event('change', { bubbles: true }));
-  calcWRG();
-}
+/* ─── ± VORZEICHEN: delegates to global toggleTempSign() in hx-engine.js ─── */
 
 /* ═══════════════════════════════════════════════════════
    wrg-mischluft.js  —  Massenstromrechner PWA
@@ -246,11 +230,11 @@ function calcMix() {
 
 /* ─── INIT ─── */
 document.addEventListener('DOMContentLoaded', () => {
-  ['wrg-ab-t','wrg-ab-phi','wrg-au-t','wrg-au-phi','wrg-eta']
-    .forEach(id => _$(id)?.addEventListener('input', calcWRG));
-  // Also listen for change events (handles autofill and programmatic changes)
-  ['wrg-ab-t','wrg-ab-phi','wrg-au-t','wrg-au-phi','wrg-eta']
-    .forEach(id => _$(id)?.addEventListener('change', calcWRG));
-  ['mix-ls1-t','mix-ls1-phi','mix-ls1-vol','mix-ls2-t','mix-ls2-phi','mix-ls2-vol']
-    .forEach(id => _$(id)?.addEventListener('input', calcMix));
+  const wrgIds = ['wrg-ab-t','wrg-ab-phi','wrg-au-t','wrg-au-phi','wrg-eta'];
+  const mixIds = ['mix-ls1-t','mix-ls1-phi','mix-ls1-vol','mix-ls2-t','mix-ls2-phi','mix-ls2-vol'];
+  wrgIds.forEach(id => {
+    _$(id)?.addEventListener('input',  calcWRG);
+    _$(id)?.addEventListener('change', calcWRG);  // covers type=text programmatic changes
+  });
+  mixIds.forEach(id => _$(id)?.addEventListener('input', calcMix));
 });
