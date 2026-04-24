@@ -153,17 +153,35 @@ function triggerPdfPrint() {
 function _openPrintWindow(bodyHtml) {
   const win = window.open('', '_blank', 'width=900,height=700');
   if (!win) {
-    alert('Popup blockiert — bitte Popups für diese Seite erlauben.');
+    alert('Popup blockiert \u2014 bitte Popups f\u00fcr diese Seite erlauben.');
     return;
   }
+  const closeBtn = `
+    <div class="no-print" style="
+      position:fixed;top:12px;right:14px;z-index:999;
+      display:flex;gap:8px;align-items:center">
+      <button onclick="window.print()" style="
+        background:#1a3a5c;color:#fff;border:none;border-radius:8px;
+        padding:8px 16px;font-size:13px;font-weight:700;cursor:pointer;
+        font-family:Arial,sans-serif">
+        &#128438; Drucken / Als PDF speichern
+      </button>
+      <button onclick="window.close()" style="
+        background:#e0e6ef;color:#333;border:none;border-radius:8px;
+        padding:8px 14px;font-size:13px;font-weight:700;cursor:pointer;
+        font-family:Arial,sans-serif">
+        &#10005; Schlie&szlig;en
+      </button>
+    </div>
+    <div class="no-print" style="height:48px"></div>`;
+
   win.document.open();
   win.document.write(`<!DOCTYPE html><html lang="de"><head>
 <meta charset="UTF-8"/>
-<title>Massenstromrechner — Ausdruck</title>
+<title>Massenstromrechner \u2014 Ausdruck</title>
 <style>${_printCSS()}</style>
-</head><body>${bodyHtml}</body></html>`);
+</head><body>${closeBtn}${bodyHtml}</body></html>`);
   win.document.close();
-  win.onload = () => { win.focus(); win.print(); };
 }
 
 /* ───────────────────────────────────────
@@ -234,7 +252,7 @@ tr:nth-child(even) td{background:#f9fafc}
   width:100%;border:1px solid #dee4ef;border-radius:6px;
   overflow:hidden;margin:6px 0 10px;background:#f8f9fb;
 }
-.diag img{width:100%;display:block}
+.diag img{width:auto;max-width:100%;max-height:90mm;display:block;margin:0 auto}
 
 /* ── Ergebnis-Grid (Heizung/Kälte) ── */
 .res-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px}
