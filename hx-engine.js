@@ -181,9 +181,9 @@ function _drawPhiCurves(ctx, W, H) {
     ctx.setLineDash([4, 5]);
     ctx.beginPath();
     let first = true;
-    for (let T = CFG.tMin; T <= CFG.tMax; T += 0.5) {
+    for (let T = CFG.tMin; T <= CFG.tMax; T += 0.25) {
       const x = calcX(T, phi);
-      if (x < -0.5 || x > CFG.xMax + 0.3) { first = true; continue; }
+      if (x < -0.2 || x > CFG.xMax + 0.2) { first = true; continue; }
       const { px, py } = toCanvas(Math.min(x, CFG.xMax), T, W, H);
       first ? (ctx.moveTo(px, py), first = false) : ctx.lineTo(px, py);
     }
@@ -191,21 +191,41 @@ function _drawPhiCurves(ctx, W, H) {
     ctx.setLineDash([]);
     ctx.restore();
 
-    // Label: in der Mitte der Kurve (bei T ≈ 25°C) oder rechts
-    const Tlbl = Math.min(30, CFG.tMax - 8);
-    const xlbl = calcX(Tlbl, phi);
-    if (xlbl >= 0.5 && xlbl <= CFG.xMax - 0.5) {
+    /* Label: jede φ-Kurve bekommt ein Label an der Stelle wo x = xMax
+       Das erzeugt die charakteristisch geschwungene Anordnung rechts,
+       wie im Original-Mollier — höhere φ weiter oben, niedrigere weiter unten */
+    // Finde T wo x ≈ xMax * 0.92 (kurz vor rechtem Rand)
+    let Tlbl = NaN;
+    const xTarget = CFG.xMax * 0.91;
+    for (let T = CFG.tMax; T >= CFG.tMin; T -= 0.5) {
+      if (calcX(T, phi) >= xTarget) { Tlbl = T; break; }
+    }
+    // Fallback: höchste T wo Kurve noch im Bereich ist
+    if (isNaN(Tlbl)) {
+      for (let T = CFG.tMax; T >= CFG.tMin; T -= 0.5) {
+        const x = calcX(T, phi);
+        if (x >= 0.3 && x <= CFG.xMax + 0.3) { Tlbl = T; break; }
+      }
+    }
+    if (!isNaN(Tlbl)) {
+      const xlbl = Math.min(calcX(Tlbl, phi), CFG.xMax);
       const { px, py } = toCanvas(xlbl, Tlbl, W, H);
-      ctx.save();
-      ctx.fillStyle = acc ? 'rgba(90,160,255,0.85)' : 'rgba(80,130,255,0.55)';
-      ctx.font = (acc ? 'bold ' : '') + '9px Arial,sans-serif';
-      ctx.textAlign = 'left';
-      // Hintergrund
-      ctx.fillStyle = 'rgba(4,8,16,0.70)';
-      ctx.fillRect(px - 1, py - 9, 24, 12);
-      ctx.fillStyle = acc ? 'rgba(90,160,255,0.85)' : 'rgba(80,130,255,0.55)';
-      ctx.fillText(phi + ' %', px + 1, py);
-      ctx.restore();
+      const { pad: p } = CFG;
+      // Nur zeichnen wenn innerhalb des Plot-Bereichs
+      if (px > p.left + 10 && px < W - p.right + 2 &&
+          py > p.top + 5 && py < H - p.bottom - 5) {
+        ctx.save();
+        ctx.font = (acc ? 'bold ' : '') + '9px Arial,sans-serif';
+        ctx.textAlign = 'left';
+        const lbl = phi + ' %';
+        const tw = ctx.measureText(lbl).width;
+        // Hintergrund clearing
+        ctx.fillStyle = 'rgba(4,8,16,0.72)';
+        ctx.fillRect(px + 2, py - 9, tw + 4, 12);
+        ctx.fillStyle = acc ? 'rgba(90,160,255,0.90)' : 'rgba(80,130,255,0.58)';
+        ctx.fillText(lbl, px + 3, py);
+        ctx.restore();
+      }
     }
   });
 }

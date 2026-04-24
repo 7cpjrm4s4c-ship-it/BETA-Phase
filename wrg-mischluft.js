@@ -1,3 +1,14 @@
+
+/* ─── ± VORZEICHEN für WRG Außenluft ─── */
+function wrgToggleSign(inputId) {
+  const inp = document.getElementById(inputId);
+  if (!inp) return;
+  const v = parseFloat(String(inp.value).replace(',', '.').trim());
+  if (isNaN(v) || v === 0) return;
+  inp.value = String(-v).replace('.', ',');
+  inp.dispatchEvent(new Event('input', { bubbles: true }));
+}
+
 /* ═══════════════════════════════════════════════════════
    wrg-mischluft.js  —  Massenstromrechner PWA
    Wärmerückgewinnung (WRG) & Luftmischung
@@ -36,7 +47,7 @@ function _stateBox(title, s, color, sub) {
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:5px">
       <div>
         <div style="font-size:10px;color:var(--t3);font-family:var(--f)">T [°C]</div>
-        <div style="font-family:var(--fm);font-size:16px;font-weight:700;color:var(--t1)">${_fmt(s.T,1)}</div>
+        <div style="font-family:var(--fm);font-size:15px;font-weight:700;color:var(--t1);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${_fmt(s.T,1)}</div>
       </div>
       <div>
         <div style="font-size:10px;color:var(--t3);font-family:var(--f)">φ [%]</div>
@@ -96,7 +107,9 @@ function calcWRG() {
   const s_ab = { T: T_ab, phi: ph_ab, x: x_ab, h: h_ab };
   const s_au = { T: T_au, phi: ph_au, x: x_au, h: h_au };
   const s_zl = { T: T_zl, phi: _phi(T_zl, x_zl), x: x_zl, h: _h(T_zl, x_zl) };
-  const s_fl = { T: T_fl, phi: _phi(T_fl, x_fl), x: x_fl, h: _h(T_fl, x_fl) };
+  const phi_fl_raw = _phi(T_fl, x_fl);
+  const phi_fl = Math.min(100, phi_fl_raw); // max 100% (Sättigungsgrenze)
+  const s_fl = { T: T_fl, phi: phi_fl, x: x_fl, h: _h(T_fl, x_fl) };
 
   const dQ_zl = +(s_zl.h - s_au.h).toFixed(1);
   const dT_zl = +(T_zl - T_au).toFixed(1);
@@ -165,18 +178,27 @@ function calcMix() {
   const a2 = (m2 / mM * 100).toFixed(0);
 
   el.innerHTML = `
-    <div style="margin-bottom:var(--gap-s)">
-      ${_stateBox('LS3 — Mischluft', sM,
-        'var(--grn)',
-        `V̇ = ${_fmt(volM,0)} m³/h &nbsp;·&nbsp; ṁ = ${_fmt(mM,0)} kg/h &nbsp;·&nbsp; LS1: ${a1}% / LS2: ${a2}%`)}
-    </div>
-    <div style="background:var(--grn-t);border:1px solid var(--grn-b);border-radius:var(--r-m);padding:10px 12px">
-      <div style="font-family:var(--f);font-size:11px;font-weight:700;color:var(--grn);margin-bottom:4px">Mischungsbilanz</div>
-      <div style="font-family:var(--fm);font-size:12px;color:var(--t2);line-height:1.7">
-        ṁ₁ = ${_fmt(m1,0)} kg/h &nbsp;+&nbsp; ṁ₂ = ${_fmt(m2,0)} kg/h = ${_fmt(mM,0)} kg/h
+    <div style="margin-bottom:10px;padding:12px 14px;
+                background:rgba(52,211,153,.10);border:1px solid rgba(52,211,153,.28);
+                border-radius:var(--r-m)">
+      <div style="font-family:var(--f);font-size:10px;font-weight:700;letter-spacing:.12em;
+                  text-transform:uppercase;color:var(--grn);margin-bottom:4px">Gesamtvolumenstrom</div>
+      <div style="font-family:var(--fm);font-size:28px;font-weight:700;color:var(--t1);line-height:1">
+        ${_fmt(volM,0)}<span style="font-size:14px;font-weight:400;color:var(--t3);margin-left:4px">m³/h</span>
       </div>
-      <div style="font-size:10px;color:var(--t3);margin-top:4px;font-family:var(--f)">
-        Massengewichtete Mischung · V̇<sub>M</sub> ≈ ${_fmt(volM,0)} m³/h
+      <div style="font-size:11px;color:var(--t3);margin-top:3px;font-family:var(--f)">
+        ṁ = ${_fmt(mM,0)} kg/h &nbsp;·&nbsp; LS1: ${a1}% &nbsp;/&nbsp; LS2: ${a2}%
+      </div>
+    </div>
+    ${_stateBox('LS3 — Mischluft', sM, 'var(--grn)', '')}
+    <div style="background:var(--grn-t);border:1px solid var(--grn-b);border-radius:var(--r-m);
+                padding:10px 12px;margin-top:8px">
+      <div style="font-family:var(--f);font-size:11px;font-weight:700;color:var(--grn);margin-bottom:4px">Mischungsbilanz</div>
+      <div style="font-family:var(--fm);font-size:12px;color:var(--t2);line-height:1.8">
+        ṁ₁ = ${_fmt(m1,0)} kg/h + ṁ₂ = ${_fmt(m2,0)} kg/h = <strong style="color:var(--grn)">${_fmt(mM,0)} kg/h</strong>
+      </div>
+      <div style="font-size:11px;color:var(--t2);margin-top:3px;font-family:var(--fm)">
+        V̇₁ = ${_fmt(vol1,0)} m³/h + V̇₂ = ${_fmt(vol2,0)} m³/h = <strong style="color:var(--grn)">${_fmt(volM,0)} m³/h</strong>
       </div>
     </div>`;
 }

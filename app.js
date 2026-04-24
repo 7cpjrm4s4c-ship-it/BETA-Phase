@@ -43,12 +43,12 @@ function switchTab(t) {
 
 function _updatePill(activeTab) {
   // Haupt-Pill-Buttons (flow, luft, pipe)
-  ['flow','luft','pipe'].forEach(id => {
+  ['flow','luft','hx'].forEach(id => {
     const btn = $('pill-' + id);
     if (btn) btn.classList.toggle('active', id === activeTab);
   });
-  // Plus-Sheet-Items (unit, hx, wrg) — active-tab Markierung
-  ['unit','hx','wrg'].forEach(id => {
+  // Plus-Sheet-Items (pipe, unit, wrg) — active-tab Markierung
+  ['pipe','unit','wrg'].forEach(id => {
     const btn = $('plus-' + id);
     if (btn) btn.classList.toggle('active-tab', id === activeTab);
   });
@@ -101,7 +101,7 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   // Pill Haupt-Buttons
-  ['flow','luft','pipe'].forEach(id => {
+  ['flow','luft','hx'].forEach(id => {
     $('pill-' + id)?.addEventListener('click', () => switchTab(id));
   });
 
@@ -112,14 +112,8 @@ document.addEventListener('DOMContentLoaded', () => {
   $('plus-overlay')?.addEventListener('click', closePlusSheet);
 
   // Plus Sheet Items
-  ['unit','hx','wrg'].forEach(id => {
+  ['pipe','unit','wrg'].forEach(id => {
     $('plus-' + id)?.addEventListener('click', () => _switchFromPlus(id));
-  });
-
-  // PDF aus Plus Sheet
-  $('plus-pdf')?.addEventListener('click', () => {
-    closePlusSheet();
-    if (typeof openPdfSheet === 'function') openPdfSheet();
   });
 
   // Swipe-Down schließt Sheet

@@ -124,7 +124,7 @@ input[type=number]::-webkit-outer-spin-button { -webkit-appearance:none; }
    HEADER — frosted glass bar
 ═══════════════════════════════════════════════════════ */
 .hdr {
-  position:sticky; top:0; z-index:100;
+  position:fixed; top:0; left:0; right:0; z-index:300;
   padding-top:var(--sat);
   background:rgba(0,0,0,0.82);
   backdrop-filter:saturate(180%) blur(28px);
@@ -561,7 +561,7 @@ input[type=number]::-webkit-outer-spin-button { -webkit-appearance:none; }
   position:fixed;
   bottom:calc(18px + env(safe-area-inset-bottom));
   left:50%; transform:translateX(-50%);
-  z-index:190;
+  z-index:200;
   align-items:center;
   gap:2px;
   background:rgba(14,14,22,0.92);
@@ -1246,7 +1246,7 @@ input[type=number]::-webkit-outer-spin-button { -webkit-appearance:none; }
 <!-- ══════════════════════════════════════════════════════
      TAB: MASSENSTROM
 ══════════════════════════════════════════════════════ -->
-<div id="tab-flow">
+<div id="tab-flow" style="padding-top:var(--hdr)">
 
   <!-- LEFT column -->
   <div class="col-L">
@@ -1446,7 +1446,7 @@ input[type=number]::-webkit-outer-spin-button { -webkit-appearance:none; }
 ══════════════════════════════════════════════════════ -->
 
 <!-- ══ TAB: LUFT ══ -->
-<div id="tab-luft" style="display:none">
+<div id="tab-luft" style="padding-top:var(--hdr)" style="display:none">
   <div style="padding:12px;padding-left:calc(12px + var(--sal));padding-right:calc(12px + var(--sar));padding-bottom:calc(32px + var(--sab));display:flex;flex-direction:column;gap:var(--gap);max-width:640px;width:100%;margin:0 auto">
 
     <!-- ① Zulufttemperatur + Raumtemperatur pill — Heizen & Kühlen getrennt -->
@@ -1597,7 +1597,7 @@ input[type=number]::-webkit-outer-spin-button { -webkit-appearance:none; }
   </div>
 </div>
 
-<div id="tab-pipe" style="display:none">
+<div id="tab-pipe" style="padding-top:var(--hdr)" style="display:none">
 
   <div class="pipe-params">
     <div class="igrp" style="margin-bottom:0">
@@ -1641,7 +1641,7 @@ input[type=number]::-webkit-outer-spin-button { -webkit-appearance:none; }
 <!-- ══════════════════════════════════════════════════════
      TAB: EINHEITENRECHNER
 ══════════════════════════════════════════════════════ -->
-<div id="tab-unit" style="display:none">
+<div id="tab-unit" style="padding-top:var(--hdr)" style="display:none">
   <div style="padding:12px;padding-left:calc(12px + var(--sal));padding-right:calc(12px + var(--sar));padding-bottom:calc(32px + var(--sab));display:flex;flex-direction:column;gap:var(--gap);max-width:640px;width:100%;margin:0 auto">
 
     <!-- Category grid -->
@@ -1719,7 +1719,7 @@ input[type=number]::-webkit-outer-spin-button { -webkit-appearance:none; }
 <!-- ═══════════════════════════════════════════════════════
    TAB: H,X-DIAGRAMM
 ═══════════════════════════════════════════════════════ -->
-<div id="tab-hx" style="display:none">
+<div id="tab-hx" style="padding-top:var(--hdr)" style="display:none">
 <div style="padding:12px;padding-left:calc(12px + var(--sal));padding-right:calc(12px + var(--sar));padding-bottom:calc(32px + var(--sab));display:flex;flex-direction:column;gap:var(--gap);max-width:640px;width:100%;margin:0 auto">
 
   <!-- 1. Ausgangszustand -->
@@ -1895,11 +1895,27 @@ input[type=number]::-webkit-outer-spin-button { -webkit-appearance:none; }
     </div>
   </div>
 
+  <!-- PDF Export -->
+  <button onclick="openPdfSheet()"
+    style="width:100%;height:52px;border:none;border-radius:var(--r-m);
+           background:var(--grn-t);border:1px solid var(--grn-b);
+           color:var(--grn);font-family:var(--f);font-size:15px;font-weight:700;
+           cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;
+           box-shadow:0 8px 24px rgba(52,211,153,.12)">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M14 3H7a2 2 0 00-2 2v14a2 2 0 002 2h10a2 2 0 002-2V9z"/>
+      <polyline points="14 3 14 9 20 9"/>
+      <line x1="12" y1="13" x2="12" y2="17"/>
+      <polyline points="9 16 12 19 15 16"/>
+    </svg>
+    Als PDF exportieren
+  </button>
+
 </div>
 </div><!-- /tab-hx -->
 
 <!-- ══ TAB: WRG / MISCHLUFT ══ -->
-<div id="tab-wrg" style="display:none">
+<div id="tab-wrg" style="padding-top:var(--hdr)" style="display:none">
 <div style="padding:12px;padding-left:calc(12px + var(--sal));padding-right:calc(12px + var(--sar));
             padding-bottom:calc(32px + var(--sab));display:flex;flex-direction:column;
             gap:var(--gap);max-width:640px;width:100%;margin:0 auto">
@@ -1935,9 +1951,17 @@ input[type=number]::-webkit-outer-spin-button { -webkit-appearance:none; }
         <div class="ilbl" style="color:var(--cold-t);margin-bottom:var(--gap-s)">&#8595; Außenluft (LS2)</div>
         <div class="igrp">
           <div class="ilbl">Temperatur T</div>
-          <div class="iwrap">
-            <input class="inp-sm" id="wrg-au-t" type="number" step="0.5" placeholder="z.B. -10" inputmode="decimal"/>
-            <span class="iunit">&deg;C</span>
+          <div style="display:flex;gap:6px;align-items:center">
+            <button onclick="wrgToggleSign('wrg-au-t')"
+              style="width:40px;height:40px;flex-shrink:0;background:var(--glass-mid);
+                     border:1px solid var(--gb-strong);border-radius:var(--r-s);
+                     color:var(--t2);font-size:18px;font-weight:700;cursor:pointer;
+                     display:flex;align-items:center;justify-content:center;
+                     font-family:var(--fm);touch-action:manipulation">±</button>
+            <div class="iwrap" style="flex:1">
+              <input class="inp-sm" id="wrg-au-t" type="number" step="0.5" placeholder="-10" inputmode="decimal"/>
+              <span class="iunit">&deg;C</span>
+            </div>
           </div>
         </div>
         <div class="igrp" style="margin-bottom:0">
@@ -2080,15 +2104,13 @@ input[type=number]::-webkit-outer-spin-button { -webkit-appearance:none; }
     L&uuml;ftung
   </button>
 
-  <!-- Rohr -->
-  <button class="pill-btn" id="pill-pipe" data-tab="pipe" aria-label="Rohrdimensionierung">
+  <!-- h,x-Diagramm -->
+  <button class="pill-btn" id="pill-hx" data-tab="hx" aria-label="hx-Diagramm">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
-      <rect x="2" y="8" width="5" height="8" rx="1.5"/>
-      <rect x="17" y="8" width="5" height="8" rx="1.5"/>
-      <line x1="7" y1="10.5" x2="17" y2="10.5"/>
-      <line x1="7" y1="13.5" x2="17" y2="13.5"/>
+      <polyline points="3 20 7 10 11 14 15 6 21 6"/>
+      <path d="M3 20h18M3 20V4"/>
     </svg>
-    Rohr
+    h,x
   </button>
 
   <!-- Plus -->
@@ -2117,6 +2139,17 @@ input[type=number]::-webkit-outer-spin-button { -webkit-appearance:none; }
       h,x-Diagramm
     </button>
 
+    <!-- Rohr -->
+    <button class="plus-item" id="plus-pipe" data-tab="pipe">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="2" y="8" width="5" height="8" rx="1.5"/>
+        <rect x="17" y="8" width="5" height="8" rx="1.5"/>
+        <line x1="7" y1="10.5" x2="17" y2="10.5"/>
+        <line x1="7" y1="13.5" x2="17" y2="13.5"/>
+      </svg>
+      Rohr
+    </button>
+
     <!-- Einheiten -->
     <button class="plus-item" id="plus-unit" data-tab="unit">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
@@ -2134,17 +2167,6 @@ input[type=number]::-webkit-outer-spin-button { -webkit-appearance:none; }
         <line x1="12" y1="8" x2="12" y2="16"/>
       </svg>
       WRG &amp; Mischluft
-    </button>
-
-    <!-- PDF Export -->
-    <button class="plus-item plus-item-pdf" id="plus-pdf">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M14 3H7a2 2 0 00-2 2v14a2 2 0 002 2h10a2 2 0 002-2V9z"/>
-        <polyline points="14 3 14 9 20 9"/>
-        <line x1="12" y1="13" x2="12" y2="17"/>
-        <polyline points="9 16 12 19 15 16"/>
-      </svg>
-      PDF Export
     </button>
 
   </div>
