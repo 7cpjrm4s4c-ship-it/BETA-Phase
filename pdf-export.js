@@ -581,20 +581,23 @@ function _buildPipePage(meta) {
    TAB: H,X-DIAGRAMM
 ─────────────────────────────────────── */
 function _buildHxPage(meta) {
-  // Canvas als PNG exportieren
   const canvas = document.getElementById('hxCanvas');
   const imgSrc = canvas ? canvas.toDataURL('image/png') : null;
 
+  // Werte aus neuem State-Layout lesen
   const T    = _txt('state-temp');
-  const phi  = _txt('state-rh');
+  const phi  = _txt('state-phi');
   const x    = _txt('state-x');
   const h    = _txt('state-h');
+  const tdew = _txt('state-tdew');
 
+  // Diagramm: volle Breite, Höhe dynamisch (max ~140mm für A4)
   const imgBlock = imgSrc
-    ? `<div class="diag"><img src="${imgSrc}" alt="h,x-Diagramm"/></div>`
-    : `<div class="diag" style="height:60mm;display:flex;align-items:center;
+    ? `<div class="diag"><img src="${imgSrc}" alt="h,x-Diagramm nach Mollier"
+         style="width:100%;height:auto;max-height:148mm;display:block"/></div>`
+    : `<div class="diag" style="height:80mm;display:flex;align-items:center;
          justify-content:center;color:#bbb;font-size:9pt">
-         Kein Diagramm verfügbar
+         Kein Diagramm verfügbar — Zustand setzen und erneut exportieren
        </div>`;
 
   return `
@@ -602,14 +605,15 @@ function _buildHxPage(meta) {
 
   ${imgBlock}
 
-  <div class="sec">Luftzustand</div>
+  <div class="sec" style="margin-top:8px">Luftzustand</div>
   <table>
-    <thead><tr><th>Größe</th><th>Symbol</th><th>Wert</th></tr></thead>
+    <thead><tr><th>Größe</th><th>Symbol</th><th class="num">Wert</th></tr></thead>
     <tbody>
-      <tr><td>Temperatur</td><td>T</td><td class="num">${T}</td></tr>
-      <tr><td>Relative Feuchte</td><td>φ</td><td class="num">${phi}</td></tr>
-      <tr><td>Feuchtegehalt</td><td>x</td><td class="num">${x}</td></tr>
-      <tr><td>Enthalpie</td><td>h</td><td class="num">${h}</td></tr>
+      <tr><td>Temperatur</td>        <td>T</td>  <td class="num">${T} °C</td></tr>
+      <tr><td>Relative Feuchte</td>  <td>φ</td>  <td class="num">${phi} %</td></tr>
+      <tr><td>Feuchtegehalt</td>     <td>x</td>  <td class="num">${x} g/kg</td></tr>
+      <tr><td>Enthalpie</td>         <td>h</td>  <td class="num">${h} kJ/kg</td></tr>
+      <tr><td>Taupunkttemperatur</td><td>Td</td> <td class="num">${tdew} °C</td></tr>
     </tbody>
   </table>
   <p style="font-size:7pt;color:#aaa;margin-top:4px">
