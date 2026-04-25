@@ -1,5 +1,18 @@
 
-/* ─── ± VORZEICHEN: delegates to global toggleTempSign() in hx-engine.js ─── */
+/* ─── ± VORZEICHEN für WRG Außenluft ─── */
+function wrgToggleSign(inputId) {
+  const inp = document.getElementById(inputId);
+  if (!inp) return;
+  const raw = String(inp.value).replace(',', '.').trim();
+  const v = parseFloat(raw);
+  if (isNaN(v) || v === 0) {
+    if (!raw.startsWith('-')) inp.value = '-';
+    inp.focus(); return;
+  }
+  inp.value = String(-v).replace('.', ',');
+  inp.dispatchEvent(new Event('input', { bubbles: true }));
+  inp.dispatchEvent(new Event('change', { bubbles: true }));
+}
 
 /* ═══════════════════════════════════════════════════════
    wrg-mischluft.js  —  Massenstromrechner PWA

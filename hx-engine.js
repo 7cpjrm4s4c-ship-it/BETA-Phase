@@ -404,49 +404,12 @@ function _drawStatePoint(ctx, W, H, state) {
 
 /* ─── HOVER-TOOLTIP ─── */
 function _setupInteraction(canvas) {
-  let _raf = false;
-  function handle(cx, cy) {
-    if (_raf) return; _raf = true;
-    requestAnimationFrame(() => {
-      _raf = false;
-      const rect = canvas.getBoundingClientRect();
-      const px = cx - rect.left, py = cy - rect.top;
-      const W = rect.width, H = rect.height;
-      const { pad: p2 } = CFG;
-      if (px < p2.left || px > W - p2.right || py < p2.top || py > H - p2.bottom) {
-        drawHxChart(_state); return;
-      }
-      const { x, T } = fromCanvas(px, py, W, H);
-      if (x < CFG.xMin || x > CFG.xMax || T < CFG.tMin || T > CFG.tMax) {
-        drawHxChart(_state); return;
-      }
-      const xSat = calcX(T, 100);
-      drawHxChart(_state);
-      _drawHover(canvas.getContext('2d'), W, H, {
-        T: +T.toFixed(1),
-        x: +Math.min(x, xSat).toFixed(2),
-        phi: +calcPhi(T, Math.min(x, xSat)).toFixed(0),
-        inFog: x > xSat + 0.1,
-      });
-    });
-  }
-  canvas.addEventListener('mousemove', e => handle(e.clientX, e.clientY), { passive: true });
+  // Interaction: only mouseleave to redraw, no hover tooltip (Bug 3)
+  // Bug 3: Hover tooltip removed — point only shown after state is set
   canvas.addEventListener('mouseleave', () => drawHxChart(_state));
-  canvas.addEventListener('touchmove', e => {
-    e.preventDefault();
-    handle(e.touches[0].clientX, e.touches[0].clientY);
-  }, { passive: false });
 }
 
-function _drawHover(ctx, W, H, s) {
-  // Nur Punkt anzeigen — kein Tooltip-Text im Diagramm
-  const { px, py } = toCanvas(s.x, s.T, W, H);
-  ctx.save();
-  ctx.beginPath(); ctx.arc(px, py, 5, 0, Math.PI * 2);
-  ctx.fillStyle = s.inFog ? 'rgba(255,150,50,0.75)' : 'rgba(255,210,80,0.75)';
-  ctx.shadowColor = 'rgba(255,200,60,0.60)'; ctx.shadowBlur = 12;
-  ctx.fill(); ctx.restore();
-}
+/* _drawHover removed — no hover tooltip */
 
 /* ─── HILFSFUNKTIONEN ─── */
 /* _rr() removed — no longer used after tooltip removal */
@@ -872,19 +835,19 @@ function _filterProcessOptions() {
 
   const s1 = _state;
   const x2 = !isNaN(phi2) ? calcX(T2, phi2) : NaN;
-  const needHeat    = T2 > s1.T + 0.3;
-  const needCool    = T2 < s1.T - 0.3;
+  const needHeat    = T2 > s1.T + 0.3;   // Ziel wärmer → Heizen nötig
+  const needCool    = T2 < s1.T - 0.3;   // Ziel kälter → Kühlen nötig
   const needHumid   = !isNaN(x2) && x2 > s1.x + 0.1;
   const needDehumid = !isNaN(x2) && x2 < s1.x - 0.1;
   const neutral     = !needHumid && !needDehumid;
 
-  // Bedingungen je Option
+  // Bug 4 fix: show only physically sensible processes
   const show = {
-    'heizen':      needHeat  && (neutral || needHumid),
-    'kuehlen':     needCool  && (neutral || needDehumid),
-    'dampf':       needHumid,
-    'adiabat':     needHumid,
-    'entfeuchten': needDehumid,
+    'heizen':      needHeat  && (neutral || needHumid),  // nur wenn Ziel wärmer
+    'kuehlen':     needCool  && (neutral || needDehumid), // nur wenn Ziel kälter
+    'dampf':       needHumid  && (needHeat || !needCool), // Befeuchten+Erwärmen
+    'adiabat':     needHumid  && (needHeat || !needCool), // adiabat = Vorwärmen nötig
+    'entfeuchten': needDehumid || needCool,               // Entfeuchten = Kühlen
     'nachheizen':  needHeat,
   };
 

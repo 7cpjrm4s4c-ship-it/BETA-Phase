@@ -696,8 +696,33 @@ function _buildWrgPage(meta) {
    TAB: H,X-DIAGRAMM
 ─────────────────────────────────────── */
 function _buildHxPage(meta) {
-  const canvas = document.getElementById('hxCanvas');
-  const imgSrc = canvas ? canvas.toDataURL('image/png') : null;
+  // Render fresh hi-res canvas for PDF (avoids mobile canvas distortion)
+  const srcCanvas = document.getElementById('hxCanvas');
+  let imgSrc = null;
+  if (srcCanvas && window._hxState) {
+    try {
+      const pdfCanvas = document.createElement('canvas');
+      pdfCanvas.width  = 900;
+      pdfCanvas.height = 620;
+      pdfCanvas.style.width  = '900px';
+      pdfCanvas.style.height = '620px';
+      // Temporarily replace canvas for drawing
+      const origW = srcCanvas.style.width, origH = srcCanvas.style.height;
+      const origCW = srcCanvas.width, origCH = srcCanvas.height;
+      srcCanvas.width = 900; srcCanvas.height = 620;
+      srcCanvas.style.width = '900px'; srcCanvas.style.height = '620px';
+      if (typeof drawHxChart === 'function') drawHxChart(window._hxState);
+      imgSrc = srcCanvas.toDataURL('image/png');
+      // Restore original
+      srcCanvas.width = origCW; srcCanvas.height = origCH;
+      srcCanvas.style.width = origW; srcCanvas.style.height = origH;
+      if (typeof drawHxChart === 'function') drawHxChart(window._hxState);
+    } catch(e) {
+      imgSrc = srcCanvas ? srcCanvas.toDataURL('image/png') : null;
+    }
+  } else if (srcCanvas) {
+    imgSrc = srcCanvas.toDataURL('image/png');
+  }
 
   // Ausgangszustand
   const T    = _txt('state-temp');
@@ -753,7 +778,7 @@ function _buildHxPage(meta) {
 
   const imgBlock = imgSrc
     ? `<div class="diag"><img src="${imgSrc}" alt="h,x-Diagramm"
-         style="width:100%;height:auto;max-height:110mm;display:block;margin:0 auto"/></div>`
+         style="width:100%;height:auto;display:block;margin:0 auto;max-height:130mm;object-fit:contain"/></div>`
     : `<div class="diag" style="height:50mm;display:flex;align-items:center;
          justify-content:center;color:#bbb;font-size:9pt">
          Kein Diagramm — Zustand setzen und erneut exportieren</div>`;

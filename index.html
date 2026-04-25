@@ -610,6 +610,9 @@ input[type=number]::-webkit-outer-spin-button { -webkit-appearance:none; }
 .pill-btn.active {
   background:rgba(79,168,255,0.15);
   color:var(--blue);
+  /* Blue ring matches plus-button style */
+  outline:none;
+  box-shadow:0 0 0 1.5px rgba(79,168,255,0.55);
 }
 .pill-btn svg { width:21px; height:21px; margin-bottom:1px; }
 
@@ -1468,7 +1471,7 @@ input[type=number]::-webkit-outer-spin-button { -webkit-appearance:none; }
 
 <!-- ══ TAB: LUFT ══ -->
 <div id="tab-luft" style="display:none">
-  <div style="padding:12px;padding-left:calc(12px + var(--sal));padding-right:calc(12px + var(--sar));padding-bottom:calc(32px + var(--sab));display:flex;flex-direction:column;gap:var(--gap);max-width:640px;width:100%;margin:0 auto">
+  <div style="padding:0 12px;padding-left:calc(12px + var(--sal));padding-right:calc(12px + var(--sar));padding-bottom:calc(96px + var(--sab));display:flex;flex-direction:column;gap:var(--gap);max-width:640px;width:100%;margin:0 auto">
 
     <!-- ① Zulufttemperatur + Raumtemperatur pill — Heizen & Kühlen getrennt -->
     <div class="gc" style="padding:0;overflow:hidden">
@@ -1663,7 +1666,7 @@ input[type=number]::-webkit-outer-spin-button { -webkit-appearance:none; }
      TAB: EINHEITENRECHNER
 ══════════════════════════════════════════════════════ -->
 <div id="tab-unit" style="display:none">
-  <div style="padding:12px;padding-left:calc(12px + var(--sal));padding-right:calc(12px + var(--sar));padding-bottom:calc(32px + var(--sab));display:flex;flex-direction:column;gap:var(--gap);max-width:640px;width:100%;margin:0 auto">
+  <div style="padding:0 12px;padding-left:calc(12px + var(--sal));padding-right:calc(12px + var(--sar));padding-bottom:calc(32px + var(--sab));display:flex;flex-direction:column;gap:var(--gap);max-width:640px;width:100%;margin:0 auto">
 
     <!-- Category grid -->
     <div class="gc">
@@ -1741,7 +1744,7 @@ input[type=number]::-webkit-outer-spin-button { -webkit-appearance:none; }
    TAB: H,X-DIAGRAMM
 ═══════════════════════════════════════════════════════ -->
 <div id="tab-hx" style="display:none">
-<div style="padding:12px;padding-left:calc(12px + var(--sal));padding-right:calc(12px + var(--sar));padding-bottom:calc(32px + var(--sab));display:flex;flex-direction:column;gap:var(--gap);max-width:640px;width:100%;margin:0 auto">
+<div style="padding:0 12px;padding-left:calc(12px + var(--sal));padding-right:calc(12px + var(--sar));padding-bottom:calc(96px + var(--sab));display:flex;flex-direction:column;gap:var(--gap);max-width:640px;width:100%;margin:0 auto">
 
   <!-- 1. Ausgangszustand -->
   <div class="gc">
@@ -1951,14 +1954,14 @@ input[type=number]::-webkit-outer-spin-button { -webkit-appearance:none; }
         <div class="igrp">
           <div class="ilbl">Temperatur T</div>
           <div class="iwrap">
-            <input class="inp-sm" id="wrg-ab-t" type="number" step="0.5" placeholder="z.B. 22" inputmode="decimal"/>
+            <input class="inp-sm" id="wrg-ab-t" type="number" step="0.5" placeholder="z.B. 22" inputmode="decimal" oninput="calcWRG()"/>
             <span class="iunit">&deg;C</span>
           </div>
         </div>
         <div class="igrp" style="margin-bottom:0">
           <div class="ilbl">Rel. Feuchte &phi;</div>
           <div class="iwrap">
-            <input class="inp-sm" id="wrg-ab-phi" type="number" min="1" max="100" step="1" placeholder="z.B. 40" inputmode="decimal"/>
+            <input class="inp-sm" id="wrg-ab-phi" type="number" min="1" max="100" step="1" placeholder="z.B. 40" inputmode="decimal" oninput="calcWRG()"/>
             <span class="iunit">%</span>
           </div>
         </div>
@@ -1976,7 +1979,7 @@ input[type=number]::-webkit-outer-spin-button { -webkit-appearance:none; }
                      display:flex;align-items:center;justify-content:center;
                      font-family:var(--fm);touch-action:manipulation">±</button>
             <div class="iwrap" style="flex:1">
-              <input class="inp-sm" id="wrg-au-t" type="text" inputmode="decimal" placeholder="-10"/>
+              <input class="inp-sm" id="wrg-au-t" type="text" inputmode="decimal" placeholder="-10" oninput="calcWRG()"/>
               <span class="iunit">&deg;C</span>
             </div>
           </div>
@@ -1984,7 +1987,7 @@ input[type=number]::-webkit-outer-spin-button { -webkit-appearance:none; }
         <div class="igrp" style="margin-bottom:0">
           <div class="ilbl">Rel. Feuchte &phi;</div>
           <div class="iwrap">
-            <input class="inp-sm" id="wrg-au-phi" type="number" min="1" max="100" step="1" placeholder="z.B. 90" inputmode="decimal"/>
+            <input class="inp-sm" id="wrg-au-phi" type="number" min="1" max="100" step="1" placeholder="z.B. 90" inputmode="decimal" oninput="calcWRG()"/>
             <span class="iunit">%</span>
           </div>
         </div>
@@ -1995,7 +1998,7 @@ input[type=number]::-webkit-outer-spin-button { -webkit-appearance:none; }
     <div class="igrp" style="margin-top:var(--gap)">
       <div class="ilbl">Temperaturwirkungsgrad &eta;<sub>t</sub></div>
       <div class="iwrap">
-        <input class="inp" id="wrg-eta" type="number" min="0" max="100" step="5" value="70" inputmode="decimal"/>
+        <input class="inp" id="wrg-eta" type="number" min="0" max="100" step="5" value="70" inputmode="decimal" oninput="calcWRG()"/>
         <span class="iunit">%</span>
       </div>
     </div>
@@ -2033,19 +2036,19 @@ input[type=number]::-webkit-outer-spin-button { -webkit-appearance:none; }
         <div class="igrp" style="margin-bottom:0">
           <div class="ilbl">T [&deg;C]</div>
           <div class="iwrap">
-            <input class="inp-sm" id="mix-ls1-t" type="number" step="0.5" placeholder="22" inputmode="decimal"/>
+            <input class="inp-sm" id="mix-ls1-t" type="number" step="0.5" placeholder="22" inputmode="decimal" oninput="calcMix()"/>
           </div>
         </div>
         <div class="igrp" style="margin-bottom:0">
           <div class="ilbl">&phi; [%]</div>
           <div class="iwrap">
-            <input class="inp-sm" id="mix-ls1-phi" type="number" min="1" max="100" step="1" placeholder="40" inputmode="decimal"/>
+            <input class="inp-sm" id="mix-ls1-phi" type="number" min="1" max="100" step="1" placeholder="40" inputmode="decimal" oninput="calcMix()"/>
           </div>
         </div>
         <div class="igrp" style="margin-bottom:0">
           <div class="ilbl">V&#x307; [m&sup3;/h]</div>
           <div class="iwrap">
-            <input class="inp-sm" id="mix-ls1-vol" type="number" style="font-size:15px" min="0" step="100" placeholder="2000" inputmode="decimal"/>
+            <input class="inp-sm" id="mix-ls1-vol" type="number" style="font-size:15px" min="0" step="100" placeholder="2000" inputmode="decimal" oninput="calcMix()"/>
           </div>
         </div>
       </div>
@@ -2058,19 +2061,19 @@ input[type=number]::-webkit-outer-spin-button { -webkit-appearance:none; }
         <div class="igrp" style="margin-bottom:0">
           <div class="ilbl">T [&deg;C]</div>
           <div class="iwrap">
-            <input class="inp-sm" id="mix-ls2-t" type="number" step="0.5" placeholder="18" inputmode="decimal"/>
+            <input class="inp-sm" id="mix-ls2-t" type="number" step="0.5" placeholder="18" inputmode="decimal" oninput="calcMix()"/>
           </div>
         </div>
         <div class="igrp" style="margin-bottom:0">
           <div class="ilbl">&phi; [%]</div>
           <div class="iwrap">
-            <input class="inp-sm" id="mix-ls2-phi" type="number" min="1" max="100" step="1" placeholder="60" inputmode="decimal"/>
+            <input class="inp-sm" id="mix-ls2-phi" type="number" min="1" max="100" step="1" placeholder="60" inputmode="decimal" oninput="calcMix()"/>
           </div>
         </div>
         <div class="igrp" style="margin-bottom:0">
           <div class="ilbl">V&#x307; [m&sup3;/h]</div>
           <div class="iwrap">
-            <input class="inp-sm" id="mix-ls2-vol" type="number" style="font-size:15px" min="0" step="100" placeholder="6000" inputmode="decimal"/>
+            <input class="inp-sm" id="mix-ls2-vol" type="number" style="font-size:15px" min="0" step="100" placeholder="6000" inputmode="decimal" oninput="calcMix()"/>
           </div>
         </div>
       </div>
