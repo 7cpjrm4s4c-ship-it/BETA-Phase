@@ -16,6 +16,7 @@ const PRECACHE = [
   '/ventilation.js',
   '/pdf-export.js',
   '/wrg-mischluft.js',
+  '/icon-512.png',
   '/app.js',
   '/styles.css',
   '/manifest.json',
