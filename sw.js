@@ -5,7 +5,7 @@
 'use strict';
 
 const BUILD_TS   = '20260430-clean';
-const CACHE_NAME = `techcalc-${BUILD_TS}`;
+const CACHE_NAME = `beta-phase-${BUILD_TS}`;
 
 const PRECACHE = [
   './', './index.html',

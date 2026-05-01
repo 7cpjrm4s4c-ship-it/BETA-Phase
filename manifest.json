@@ -1,5 +1,5 @@
 {
-  "name": "TechCalc Pro",
+  "name": "BETA-Phase",
   "short_name": "TechCalc",
   "description": "HLK-Rechner für Heizung, Lüftung und Klimatisierung",
   "display": "standalone",
@@ -15,3 +15,4 @@
   "display_override": ["window-controls-overlay", "standalone", "minimal-ui"],
   "id": "/"
 }
+ü
