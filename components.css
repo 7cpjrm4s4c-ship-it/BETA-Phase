@@ -511,3 +511,314 @@
 /* ─── ANIMATIONS ─── */
 @keyframes fadeUp { from { opacity:0; transform:translateY(12px); } to { opacity:1; transform:translateY(0); } }
 @keyframes fadeIn { from { opacity:0; } to { opacity:1; } }
+
+/* ═══════════════════════════════════════════════════════
+   UTILITY CLASSES — Ablösung aller inline styles
+   Kein inline style= mehr notwendig nach diesen Ergänzungen
+═══════════════════════════════════════════════════════ */
+
+/* ─── Farb-Modifier für out-val / stats-grid4-val ─── */
+.val--blue    { color: var(--blue); }
+.val--grn     { color: var(--grn); }
+.val--heat    { color: var(--heat-t); }
+.val--cold    { color: var(--cold-t); }
+.val--air     { color: var(--air-t); }
+.val--muted   { color: var(--t3); }
+.val--dim     { color: var(--t4); }
+
+/* ─── Result-Unit Span (z.B. " W", " °C") ─── */
+.result-unit  { font-size: 16px; font-weight: 400; color: var(--t3); }
+
+/* ─── ilbl Farb-Modifier ─── */
+.ilbl--heat   { color: var(--heat-t); margin-bottom: var(--gap-s); }
+.ilbl--cold   { color: var(--cold-t); margin-bottom: var(--gap-s); }
+.ilbl--blue   { color: var(--blue); }
+
+/* ─── Modes 2-Spaltig (HX-Tab) ─── */
+.modes--2col  { grid-template-columns: 1fr 1fr; margin-bottom: var(--gap); }
+
+/* ─── igrp Modifier ─── */
+.igrp--last   { margin-bottom: 0; }
+
+/* ─── slbl Modifier ─── */
+.slbl--sm     { margin-bottom: 10px; }
+
+/* ─── info-txt Modifier ─── */
+.info-txt--center  { text-align: center; margin-top: 8px; }
+.info-txt--hint    { margin-bottom: 12px; }
+.info-txt--gap     { margin: 12px 0 8px; }
+
+/* ─── fml Token-Spans ─── */
+.fml .fml-var { color: var(--t2); }
+
+/* ─── Leerzeilen-Trennlinie ─── */
+.divider-h  { height: 1px; background: var(--gb-soft); margin: var(--gap-s) 0; }
+
+/* ─── Lüftung: Temperaturen-Header ─── */
+.tzl-header {
+  padding:     0 16px 6px;
+  font-family: var(--f);
+  font-size:   11px;
+  font-weight: 700;
+  letter-spacing: .15em;
+  text-transform: uppercase;
+  color:       var(--t3);
+}
+.tzl-col-label {
+  font-family: var(--f);
+  font-size:   11px;
+  font-weight: 700;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+}
+.tzl-col-label--heat { color: var(--heat-t); }
+.tzl-col-label--cold { color: var(--cold-t); }
+.tzl-grid--border    { border-top: 1px solid var(--gb-soft); }
+
+/* ─── Lüftung: Auto-ΔT Ausgabefeld ─── */
+.inp-ro--dt {
+  font-size:   18px;
+  padding:     11px 52px 11px 14px;
+}
+
+/* ─── Pipe-Tab: größeres Eingabefeld (Volumenstrom) ─── */
+.inp--pipe {
+  font-size: 20px;
+  padding:   13px 52px 13px 14px;
+}
+
+/* ─── Legend-Dots ─── */
+.legend-ok     { color: var(--ok); }
+.legend-warn   { color: var(--warn); }
+.legend-danger { color: var(--danger); }
+.legend-rec    { color: var(--blue); }
+
+/* ─── Einheitenrechner ─── */
+.unit-input-row {
+  display:     flex;
+  gap:         8px;
+  align-items: stretch;
+}
+.unit-input-row .iw   { flex: 1; min-width: 0; }
+.unit-from-inp {
+  width:         100%;
+  font-size:     22px;
+  padding:       12px 14px;
+  border-radius: var(--r-m);
+}
+.unit-to-result {
+  width:         100%;
+  background:    rgba(52,211,153,.08);
+  border:        1.5px solid rgba(52,211,153,.38);
+  color:         var(--grn);
+  font-family:   var(--fm);
+  font-size:     22px;
+  font-weight:   700;
+  padding:       12px 14px;
+  border-radius: var(--r-m);
+  min-height:    52px;
+  transition:    color .2s;
+}
+.unit-sel--compact {
+  width:      auto;
+  flex-shrink: 0;
+  min-width:  100px;
+  padding:    11px 32px 11px 12px;
+  font-size:  13px;
+}
+.unit-sel--green { border-color: rgba(52,211,153,.35); }
+.unit-divider {
+  display:     flex;
+  align-items: center;
+  gap:         10px;
+  margin:      4px 0 12px;
+}
+.unit-swap-btn {
+  background:    rgba(255,255,255,.08);
+  border:        1px solid rgba(255,255,255,.16);
+  border-radius: 50%;
+  width:         36px;
+  height:        36px;
+  display:       flex;
+  align-items:   center;
+  justify-content: center;
+  cursor:        pointer;
+  font-size:     17px;
+  flex-shrink:   0;
+  font-family:   var(--fm);
+  color:         var(--t2);
+}
+.unit-all-list {
+  display:        flex;
+  flex-direction: column;
+  gap:            5px;
+}
+.unit-placeholder { color: var(--t3); font-size: 12px; text-align: center; padding: 12px 0; }
+
+/* ─── WRG-Tab ─── */
+.wrg-desc {
+  font-family:   var(--f);
+  font-size:     11px;
+  color:         var(--t3);
+  margin-bottom: var(--gap);
+  line-height:   1.55;
+}
+.wrg-section-head {
+  padding:     12px 16px 6px;
+  font-family: var(--f);
+  font-size:   11px;
+  font-weight: 700;
+  letter-spacing: .15em;
+  text-transform: uppercase;
+  color:       var(--t3);
+}
+.wrg-gc--mb   { margin-bottom: var(--gap); }
+.btn-wrg-calc {
+  width:         100%;
+  height:        52px;
+  border:        none;
+  border-radius: var(--r-m);
+  background:    linear-gradient(135deg, var(--blue), #2e80d8);
+  color:         #fff;
+  font-family:   var(--f);
+  font-size:     15px;
+  font-weight:   700;
+  cursor:        pointer;
+  box-shadow:    0 10px 28px rgba(79,168,255,.18);
+}
+.wrg-hint-text {
+  font-family: var(--f);
+  font-size:   13px;
+  color:       var(--t3);
+  text-align:  center;
+  padding:     12px;
+}
+.wrg-err-text {
+  color:      rgba(255,100,80,.9);
+  font-size:  12px;
+  text-align: center;
+  padding:    12px;
+}
+
+/* WRG: dynamisch erzeugte Zustandsboxen */
+.wrg-state-grid    { display: grid; grid-template-columns: 1fr 1fr; gap: var(--gap-s); margin-bottom: var(--gap-s); }
+.wrg-state-box     { background: var(--glass-mid); border: 1px solid var(--gb-soft); border-radius: var(--r-m); padding: 12px; }
+.wrg-state-title   { font-family: var(--f); font-size: 10px; font-weight: 700; letter-spacing: .10em; text-transform: uppercase; margin-bottom: 8px; }
+.wrg-state-title--heat { color: var(--heat-t); }
+.wrg-state-title--cold { color: var(--cold-t); }
+.wrg-state-title--grn  { color: var(--grn); }
+.wrg-state-vals    { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; }
+.wrg-state-key     { font-size: 10px; color: var(--t3); font-family: var(--f); }
+.wrg-state-val     { font-family: var(--fm); font-size: 15px; font-weight: 700; color: var(--t1); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.wrg-state-val--lg { font-size: 16px; }
+.wrg-state-sub     { font-size: 10px; color: var(--t3); margin-top: 2px; font-family: var(--f); }
+.wrg-balance       { background: var(--blue-t); border: 1px solid var(--blue-b); border-radius: var(--r-m); padding: 10px 12px; }
+.wrg-balance--grn  { background: var(--grn-t); border-color: var(--grn-b); }
+.wrg-balance-title { font-family: var(--f); font-size: 11px; font-weight: 700; color: var(--blue); margin-bottom: 4px; }
+.wrg-balance-title--grn { color: var(--grn); }
+.wrg-balance-row   { font-family: var(--fm); font-size: 12px; color: var(--t2); line-height: 1.7; }
+.wrg-balance-row--lg { line-height: 1.8; }
+.wrg-balance-strong { color: var(--grn); }
+.wrg-kond-box      { margin-top: 8px; padding: 8px 10px; background: rgba(0,196,232,.09); border: 1px solid rgba(0,196,232,.30); border-radius: var(--r-s); }
+.wrg-kond-title    { font-family: var(--f); font-size: 10px; font-weight: 700; letter-spacing: .10em; text-transform: uppercase; color: var(--cold-t); margin-bottom: 3px; }
+.wrg-kond-val      { font-family: var(--fm); font-size: 14px; font-weight: 700; color: var(--cold-t); }
+.wrg-kond-note     { font-size: 10px; color: var(--t3); margin-top: 2px; font-family: var(--f); }
+
+/* Mischluft: Gesamtvolumenstrom-Box */
+.mix-total-box     { margin-bottom: 10px; padding: 12px 14px; background: rgba(52,211,153,.10); border: 1px solid rgba(52,211,153,.28); border-radius: var(--r-m); }
+.mix-total-label   { font-family: var(--f); font-size: 10px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--grn); margin-bottom: 4px; }
+.mix-total-val     { font-family: var(--fm); font-size: 28px; font-weight: 700; color: var(--t1); line-height: 1; }
+.mix-total-unit    { font-size: 14px; font-weight: 400; color: var(--t3); margin-left: 4px; }
+.mix-total-sub     { font-size: 11px; color: var(--t3); margin-top: 3px; font-family: var(--f); }
+
+/* ─── Trinkwasser ─── */
+.tw-ne-row {
+  display:     grid;
+  grid-template-columns: 1fr auto;
+  gap:         10px;
+  align-items: end;
+}
+.tw-free-toggle {
+  width:      100%;
+  border:     0;
+  background: transparent;
+  color:      var(--t1);
+  text-align: left;
+  display:    grid;
+  grid-template-columns: auto 1fr;
+  gap:        10px;
+  align-items: center;
+  padding:    0;
+  cursor:     pointer;
+}
+.tw-free-toggle-icon  { font-size: 17px; color: var(--blue); }
+.tw-free-toggle .slbl { margin: 0; }
+.tw-ne-list           { margin-top: 10px; }
+.tw-ne-body { display: none; padding: 0 14px 14px; border-top: 1px solid var(--gb-soft); }
+.tw-ne-body.open { display: block; }
+.tw-ne-item {
+  display:     grid;
+  grid-template-columns: 1fr 130px;
+  gap:         10px;
+  align-items: center;
+}
+.tw-ne-fixture-row {
+  display:       grid;
+  grid-template-columns: 1fr 82px;
+  gap:           8px;
+  align-items:   center;
+  padding:       6px 0;
+  border-bottom: 1px solid var(--gb-soft);
+}
+.tw-fixture-row {
+  display:       grid;
+  grid-template-columns: 1fr 86px;
+  gap:           10px;
+  align-items:   center;
+  padding:       8px 0;
+  border-bottom: 1px solid var(--gb-soft);
+}
+.tw-ne-title-row { display: block; font-family: var(--f); font-size: 13px; font-weight: 800; color: var(--t1); }
+.tw-ne-sub-row   { display: block; font-family: var(--fm); font-size: 11px; color: var(--t3); margin-top: 3px; }
+.tw-key          { font-family: var(--f); font-size: 12px; font-weight: 700; color: var(--t2); }
+.tw-key--lg      { font-size: 13px; font-weight: 700; color: var(--t2); }
+.tw-val          { font-family: var(--fm); font-size: 10px; color: var(--t3); }
+.tw-val--sm      { font-size: 11px; color: var(--t3); }
+.tw-inp--compact { font-size: 15px; padding: 10px 12px; }
+.tw-inp--mid     { font-size: 15px; padding: 11px 14px; }
+.tw-err          { font-family: var(--f); font-size: 12px; color: var(--danger); padding: 6px 8px; }
+.tw-circ-chip    { margin-bottom: 10px; }
+.tw-result-grid  { display: grid; grid-template-columns: 1fr; gap: 8px; margin-top: 10px; }
+.tw-strang-grid  { display: grid; grid-template-columns: 1fr; gap: 10px; margin-bottom: 10px; }
+.tw-peak-sub     { font-family: var(--fm); font-size: 12px; color: var(--t3); margin-top: 4px; }
+
+/* ─── Entwässerung ─── */
+.ew-chip--k  { margin-bottom: 10px; }
+
+/* ─── pipe.js: dynamische Ergebniszeilen ─── */
+.pm-v--sm    { font-size: 11px; color: var(--t2); }
+.pm-dp-val   { }  /* Farbe wird per JS via --ok/--warn/--danger gesetzt – legitim */
+.pipe-dn-header { margin-bottom: 7px; }
+.pipe-dn-wrap   { margin-bottom: 12px; }
+
+/* ─── hx-engine: Ergebnis-Schritte ─── */
+.hx-step-row     { display: flex; align-items: flex-start; gap: 8px; margin-bottom: 7px; }
+.hx-step-content { flex: 1; min-width: 0; }
+.hx-step-label   { font-weight: 700; font-size: 12px; color: var(--t1); margin-bottom: 3px; }
+.hx-step-vals    { font-family: var(--fm); font-size: 11px; color: var(--t3); line-height: 1.7; }
+.hx-step-note    { font-size: 10px; color: var(--t3); margin-top: 2px; }
+
+/* ─── Trinkwasser: NE-Card Head spezifisches Layout ─── */
+.tw-ne-head.tw-free-toggle {
+  padding:               13px 14px;
+  grid-template-columns: auto 1fr auto;
+}
+.tw-iwrap { min-width: 0; }
+.tw-ne-card {
+  padding:    0;
+  overflow:   hidden;
+  background: rgba(255,255,255,.025);
+  margin-top: 10px;
+}
+.flex-shrink-0   { flex-shrink: 0; }
+.pipe-section-h  { margin-bottom: 14px; }

@@ -135,7 +135,7 @@ function unitCat(cat) {
   const tv = $('unit-to-val');
   if (tv) { tv.textContent = '\u2013'; tv.style.color = 'var(--t4)'; }
   const al = $('unit-all-list');
-  if (al) al.innerHTML = '<p style="color:var(--t3);font-size:12px;text-align:center;padding:12px 0">Wert eingeben \u2192</p>';
+  if (al) al.innerHTML = '<p class="unit-placeholder">Wert eingeben \u2192</p>';
 }
 
 function unitCalc() {
@@ -148,7 +148,7 @@ function unitCalc() {
 
   if (isNaN(raw)) {
     if (tv) { tv.textContent = '\u2013'; tv.style.color = 'var(--t4)'; }
-    if (al) al.innerHTML = '<p style="color:var(--t3);font-size:12px;text-align:center;padding:12px 0">Wert eingeben \u2192</p>';
+    if (al) al.innerHTML = '<p class="unit-placeholder">Wert eingeben \u2192</p>';
     return;
   }
 

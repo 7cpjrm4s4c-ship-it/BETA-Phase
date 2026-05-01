@@ -136,7 +136,7 @@ function calcLuft() {
   const mv   = $('luft-main-val');
   if (mv) {
     mv.style.color = ok ? col : 'var(--t4)';
-    mv.innerHTML   = val + `<span style="font-size:16px;font-weight:400;color:var(--t3)"> ${unit}</span>`;
+    mv.innerHTML   = val + `<span class="result-unit"> ${unit}</span>`;
   }
   const ms2 = $('luft-main-sub');
   if (ms2) { ms2.style.color = sub2; ms2.textContent = sub; }

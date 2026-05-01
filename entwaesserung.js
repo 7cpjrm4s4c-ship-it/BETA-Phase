@@ -114,7 +114,7 @@ function _ewRender(r) {
   if (detail) {
     detail.innerHTML = r.rows.length
       ? r.rows.map(row => `<div class="ew-detail-row"><span>${row.count}\u00d7 ${row.label}</span><strong>${ewFmt(row.du,1)} DU</strong></div>`).join('')
-      : '<p style="color:var(--t3);font-size:12px;text-align:center;padding:8px 0">Entw\u00e4sserungsgegenstände eingeben →</p>';
+      : '<p class="wrg-hint-text">Entw\u00e4sserungsgegenstände eingeben →</p>';
   }
   const hints = ewGet('ew-hints');
   if (hints) hints.innerHTML = ewHints(r).map(h => `<div>\u2022 ${h}</div>`).join('');
@@ -182,7 +182,7 @@ function renderStrangListe() {
   if (!host) return;
   const list = EW_STATE.straenge || [];
   if (!list.length) {
-    host.innerHTML = '<p style="color:var(--t3);font-size:12px">Noch keine Str\u00e4nge angelegt.</p>';
+    host.innerHTML = '<p class="unit-placeholder">Noch keine Str\u00e4nge angelegt.</p>';
     renderEntwaesserungTotals();
     return;
   }
@@ -224,7 +224,7 @@ function renderEntwaesserungTotals() {
   if (!host) return;
   const agg = ewAggregateStraenge();
   if (!agg.list.length) {
-    host.innerHTML = '<p style="color:var(--t3);font-size:12px">Noch keine Str\u00e4nge angelegt.</p>';
+    host.innerHTML = '<p class="unit-placeholder">Noch keine Str\u00e4nge angelegt.</p>';
     return;
   }
   const rows = agg.fixtures.map(f => `
@@ -237,7 +237,7 @@ function renderEntwaesserungTotals() {
       <span>\u03a3DU: <strong>${ewFmt(agg.duTotal,1)}</strong></span>
       <span>\u03a3Qww: <strong>${ewFmt(agg.qwwTotal,2)} l/s</strong></span>
     </div>
-    <div class="ew-strang-summary">${rows||'<p style="color:var(--t3);font-size:12px">Keine Gegenst\u00e4nde gespeichert.</p>'}</div>`;
+    <div class="ew-strang-summary">${rows||'<p class="unit-placeholder">Keine Gegenst\u00e4nde gespeichert.</p>'}</div>`;
 }
 
 /* ─── INIT ─── */

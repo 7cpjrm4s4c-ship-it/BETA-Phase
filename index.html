@@ -325,16 +325,16 @@
         Darcy-Weisbach &middot; Colebrook-White &middot; Wasser 60&thinsp;&deg;C<br/>
         &epsilon; Stahl 0,046&thinsp;mm &middot; &epsilon; Mapress 0,015&thinsp;mm<br/>
         &le;&thinsp;DN50: DIN EN 10255 Reihe M &middot; &ge;&thinsp;DN65: DIN EN 10220<br/>
-        Mapress Edelstahl 1.4401 (DIN EN 10312): <strong style="color:var(--t2)">bis max. DN 100</strong>
+        Mapress Edelstahl 1.4401 (DIN EN 10312): <strong class="val--blue">bis max. DN 100</strong>
       </div>
     </div>
 
     <!-- Dynamic pipe results -->
-    <div id="pi-card" style="display:none; flex-shrink:0">
-      <div id="pi-h" style="display:none; margin-bottom:14px">
+    <div id="pi-card" class="flex-shrink-0" style="display:none">
+      <div id="pi-h" class="pipe-section-h" style="display:none">
         <div class="psec">
           <div class="dot dot-h"></div>
-          <span class="psec-lbl" style="color:var(--heat-t)">Heizung</span>
+          <span class="psec-lbl val--heat">Heizung</span>
           <span class="psec-vol" id="pi-h-vol"></span>
         </div>
         <div class="pipe-pair" id="pi-h-pair"></div>
@@ -342,7 +342,7 @@
       <div id="pi-k" style="display:none">
         <div class="psec">
           <div class="dot dot-c"></div>
-          <span class="psec-lbl" style="color:var(--cold-t)">K&auml;lte</span>
+          <span class="psec-lbl val--cold">K&auml;lte</span>
           <span class="psec-vol" id="pi-k-vol"></span>
         </div>
         <div class="pipe-pair" id="pi-k-pair"></div>
@@ -369,14 +369,14 @@
     <div class="luft-desktop-left tcp-col tcp-col--left">
 <!-- ① Zulufttemperatur + Raumtemperatur pill — Heizen & Kühlen getrennt -->
     <div class="gc tcp-card tcp-card--flush">
-      <div style="padding:12px 16px 6px;font-family:var(--f);font-size:11px;font-weight:700;letter-spacing:.15em;text-transform:uppercase;color:var(--t3)">Temperaturen</div>
+      <div class="tzl-header">Temperaturen</div>
       <!-- Header row -->
-      <div class="tzl-grid" style="padding:0 16px 6px">
-        <div style="font-family:var(--f);font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--heat-t)">&#8593; Heizen</div>
-        <div style="font-family:var(--f);font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--cold-t)">&#8595; K&uuml;hlen</div>
+      <div class="tzl-grid tzl-col-headers">
+        <div class="tzl-col-label tzl-col-label--heat">&#8593; Heizen</div>
+        <div class="tzl-col-label tzl-col-label--cold">&#8595; K&uuml;hlen</div>
       </div>
       <!-- Zuluft row -->
-      <div class="tzl-grid" style="border-top:1px solid var(--gb-soft)">
+      <div class="tzl-grid tzl-grid--border">
         <div class="tzl-side tzl-h">
           <div class="tzl-lbl">Zuluft t<sub>ZL,H</sub></div>
           <div class="iwrap">
@@ -393,7 +393,7 @@
         </div>
       </div>
       <!-- Raum row -->
-      <div class="tzl-grid" style="border-top:1px solid var(--gb-soft)">
+      <div class="tzl-grid tzl-grid--border">
         <div class="tzl-side tzl-h">
           <div class="tzl-lbl">Raum t<sub>R,H</sub></div>
           <div class="iwrap">
@@ -469,7 +469,7 @@
         <div class="igrp tcp-input-group tcp-input-group--compact">
           <div class="ilbl" id="luft-dt-auto-lbl">&Delta;t = t<sub>ZL,H</sub> &minus; t<sub>R,H</sub></div>
           <div class="iwrap">
-            <div class="inp-ro empty" id="luft-dt-auto-val" style="font-size:18px;padding:11px 52px 11px 14px">&ndash;</div>
+            <div class="inp-ro inp-ro--dt empty" id="luft-dt-auto-val">&ndash;</div>
             <span class="iunit">K</span>
           </div>
         </div>
@@ -483,34 +483,34 @@
       <div class="slbl" id="luft-out-title">Ergebnis &mdash; Heizleistung Luft</div>
       <div class="result-main">
         <div class="result-main-lbl" id="luft-main-lbl">Leistung Q</div>
-        <div class="result-main-val" id="luft-main-val">&ndash;<span style="font-size:16px;font-weight:400;color:var(--t3)"> W</span></div>
+        <div class="result-main-val" id="luft-main-val">&ndash;<span class="result-unit"> W</span></div>
         <div class="result-main-sub" id="luft-main-sub"></div>
       </div>
       <div class="stats-grid4">
         <div><div class="stats-grid4-key">kW</div><div class="stats-grid4-val" id="luft-kw">&ndash;</div></div>
         <div><div class="stats-grid4-key">V&#x307; m&sup3;/h</div><div class="stats-grid4-val" id="luft-v-out">&ndash;</div></div>
         <div><div class="stats-grid4-key">&Delta;t K</div><div class="stats-grid4-val" id="luft-dt-out">&ndash;</div></div>
-        <div><div class="stats-grid4-key">&#7745; kg/h</div><div class="stats-grid4-val" style="color:var(--air-t)" id="luft-ms">&ndash;</div></div>
+        <div><div class="stats-grid4-key">&#7745; kg/h</div><div class="stats-grid4-val val--air" id="luft-ms">&ndash;</div></div>
       </div>
     </div>
 
     <!-- ⑤ Formel -->
     <div class="fml">
-      Q = <span style="color:var(--t2)">V&#x307;</span> &times; <span style="color:var(--t2)">&rho;<sub>L</sub>(t<sub>ZL</sub>)</span> &times; <span style="color:var(--t2)">c<sub>p,L</sub></span> &times; <span style="color:var(--t2)">&Delta;t</span>
+      Q = <span class="fml-var">V&#x307;</span> &times; <span class="fml-var">&rho;<sub>L</sub>(t<sub>ZL</sub>)</span> &times; <span class="fml-var">c<sub>p,L</sub></span> &times; <span class="fml-var">&Delta;t</span>
       &ensp;&middot;&ensp;
-      &rho;<sub>L</sub>(t) = <span style="color:var(--t2)">353,05 / (t + 273,15)</span> kg/m&sup3;
+      &rho;<sub>L</sub>(t) = <span class="fml-var">353,05 / (t + 273,15)</span> kg/m&sup3;
     </div>
 
     <!-- ⑥ Luftkennwerte -->
     <div class="info-accent-card">
       <div class="info-accent-title">Luftkennwerte (aktuell)</div>
       <div class="info-accent-grid">
-        <div style="font-size:12px;color:var(--t2)">&rho;<sub>L</sub> bei t<sub>ZL</sub></div>
-        <div style="font-family:var(--fm);font-size:11px;font-weight:600;color:var(--t1)" id="luft-rho-display">&ndash; kg/m&sup3;</div>
-        <div style="font-size:12px;color:var(--t2)">c<sub>p,L</sub></div>
-        <div style="font-family:var(--fm);font-size:11px;font-weight:600;color:var(--t1)">1.005 J/(kg&middot;K)</div>
-        <div style="font-size:12px;color:var(--t2)">&rho; &times; c<sub>p</sub> / 3600</div>
-        <div style="font-family:var(--fm);font-size:11px;font-weight:600;color:var(--t1)" id="luft-factor-display">&ndash; Wh/(m&sup3;&middot;K)</div>
+        <div class="tw-key">&rho;<sub>L</sub> bei t<sub>ZL</sub></div>
+        <div class="tw-ne-sub-row iac-val" id="luft-rho-display">&ndash; kg/m&sup3;</div>
+        <div class="tw-key">c<sub>p,L</sub></div>
+        <div class="tw-ne-sub-row iac-val">1.005 J/(kg&middot;K)</div>
+        <div class="tw-key">&rho; &times; c<sub>p</sub> / 3600</div>
+        <div class="tw-ne-sub-row iac-val" id="luft-factor-display">&ndash; Wh/(m&sup3;&middot;K)</div>
       </div>
     </div>
 
@@ -524,7 +524,7 @@
     <div class="igrp tcp-input-group tcp-input-group--compact">
       <div class="ilbl">Volumenstrom</div>
       <div class="iwrap">
-        <input class="inp" id="p-vol" type="number" min="0" step="0.01" placeholder="0.00" inputmode="decimal" style="font-size:18px;padding:12px 52px 12px 14px"/>
+        <input class="inp" id="p-vol" type="number" min="0" step="0.01" placeholder="0.00" inputmode="decimal" class="inp--pipe"/>
         <span class="iunit">m&sup3;/h</span>
       </div>
     </div>
@@ -540,21 +540,21 @@
   <div class="gc tcp-card">
     <div class="slbl">Ergebnis &mdash; Stahl &middot; Mapress Edelstahl</div>
     <div id="pipe-results">
-      <p style="color:var(--t3);font-family:Arial,sans-serif;font-size:12px;text-align:center;padding:18px 0">Volumenstrom eingeben &rarr;</p>
+      <p class="unit-placeholder">Volumenstrom eingeben &rarr;</p>
     </div>
-    <div id="pipe-legend" class="legend" style="margin-top:12px;display:none">
-      <span style="color:var(--ok)">&#9679;&thinsp;&le;&thinsp;75&thinsp;% &mdash; optimal</span>
-      <span style="color:var(--warn)">&#9679;&thinsp;&le;&thinsp;Δp<sub>max</sub></span>
-      <span style="color:var(--danger)">&#9679;&thinsp;&gt;&thinsp;Δp<sub>max</sub></span>
-      <span style="color:var(--blue)">&#9733;&thinsp;empfohlen</span>
+    <div id="pipe-legend" class="legend" style="display:none">
+      <span class="legend-ok">&#9679;&thinsp;&le;&thinsp;75&thinsp;% &mdash; optimal</span>
+      <span class="legend-warn">&#9679;&thinsp;&le;&thinsp;Δp<sub>max</sub></span>
+      <span class="legend-danger">&#9679;&thinsp;&gt;&thinsp;Δp<sub>max</sub></span>
+      <span class="legend-rec">&#9733;&thinsp;empfohlen</span>
     </div>
   </div>
 
-  <div class="info-txt" style="padding:0 2px">
+  <div class="info-txt">
     Stahl &le;&thinsp;DN50: DIN EN 10255 Reihe M &middot;
     Stahl &ge;&thinsp;DN65: DIN EN 10220 &middot;
     Mapress Edelstahl 1.4401: DIN EN 10312 &middot;
-    <strong style="color:var(--t2)">Mapress max. DN 100</strong> &middot;
+    <strong class="val--blue">Mapress max. DN 100</strong> &middot;
     &lambda; nach Colebrook-White
   </div>
 
@@ -586,36 +586,34 @@
       <!-- From -->
       <div class="igrp tcp-input-group">
         <div class="ilbl">Eingabe</div>
-        <div style="display:flex;gap:8px;align-items:stretch">
-          <div class="iw" style="flex:1">
-            <input class="inp" id="unit-from-val" type="number" placeholder="0" inputmode="decimal"
-              style="font-size:22px;padding:12px 14px;border-radius:var(--r-m)"
+        <div class="unit-input-row">
+          <div class="iw">
+            <input class="inp unit-from-inp" id="unit-from-val" type="number" placeholder="0" inputmode="decimal" class="unit-from-inp"
              />
           </div>
-          <select class="gl-sel" id="unit-from-sel" style="width:auto;flex-shrink:0;min-width:100px;padding:11px 32px 11px 12px;font-size:13px" onchange="unitCalc()"></select>
+          <select class="gl-sel unit-sel--compact" id="unit-from-sel" onchange="unitCalc()"></select>
         </div>
       </div>
 
       <!-- Swap -->
-      <div style="display:flex;align-items:center;gap:10px;margin:4px 0 12px">
-        <div style="flex:1;height:1px;background:var(--gb-soft)"></div>
-        <button id="unit-swap-btn" type="button"
-          style="background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.16);border-radius:50%;width:36px;height:36px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:17px;flex-shrink:0;font-family:var(--fm);color:var(--t2)">
+      <div class="unit-divider">
+        <div class="divider-line"></div>
+        <button id="unit-swap-btn" type="button" class="unit-swap-btn"
+>
           &#8645;
         </button>
-        <div style="flex:1;height:1px;background:var(--gb-soft)"></div>
+        <div class="divider-line"></div>
       </div>
 
       <!-- To -->
       <div class="igrp tcp-input-group tcp-input-group--compact">
         <div class="ilbl">Ergebnis</div>
-        <div style="display:flex;gap:8px;align-items:stretch">
-          <div class="iw" style="flex:1">
+        <div class="unit-input-row">
+          <div class="iw">
             <div id="unit-to-val"
-              style="width:100%;background:rgba(52,211,153,.08);border:1.5px solid rgba(52,211,153,.38);color:var(--grn);font-family:var(--fm);font-size:22px;font-weight:700;padding:12px 14px;border-radius:var(--r-m);min-height:52px;transition:color .2s"
-              class="unit-ro">&ndash;</div>
+              class="unit-to-result">&ndash;</div>
           </div>
-          <select class="gl-sel" id="unit-to-sel" style="width:auto;flex-shrink:0;min-width:100px;padding:11px 32px 11px 12px;font-size:13px;border-color:rgba(52,211,153,.35)" onchange="unitCalc()"></select>
+          <select class="gl-sel unit-sel--compact unit-sel--green" id="unit-to-sel" onchange="unitCalc()"></select>
         </div>
       </div>
     </div>
@@ -623,8 +621,8 @@
     <!-- All values list -->
     <div class="gc tcp-card" id="unit-all-card">
       <div class="slbl">Alle Werte</div>
-      <div id="unit-all-list" style="display:flex;flex-direction:column;gap:5px">
-        <p style="color:var(--t3);font-size:12px;text-align:center;padding:12px 0">Wert eingeben &rarr;</p>
+      <div id="unit-all-list" class="unit-all-list">
+        <p class="unit-placeholder">Wert eingeben &rarr;</p>
       </div>
     </div>
 
@@ -648,7 +646,7 @@
     <div class="slbl">1. Ausgangszustand</div>
 
     <!-- φ / x Modus -->
-    <div class="modes" style="grid-template-columns:1fr 1fr;margin-bottom:var(--gap)">
+    <div class="modes modes--2col">
       <button class="mbtn active" id="mode-rh">&phi;&nbsp;[%]&nbsp;Rel.&nbsp;Feuchte</button>
       <button class="mbtn"        id="mode-x" >x&nbsp;[g/kg]&nbsp;Feuchtegehalt</button>
     </div>
@@ -666,7 +664,7 @@
     </div>
 
     <!-- Relative Feuchte -->
-    <div class="igrp tcp-input-group" id="wrap-rh" style="margin-bottom:0">
+    <div class="igrp tcp-input-group igrp--last" id="wrap-rh">
       <div class="ilbl">Relative Feuchte &phi;</div>
       <div class="iwrap">
         <input class="inp" id="hx-rh" type="text"
@@ -676,7 +674,7 @@
     </div>
 
     <!-- Feuchtegehalt x -->
-    <div class="igrp tcp-input-group" id="wrap-x" style="display:none;margin-bottom:0">
+    <div class="igrp tcp-input-group" id="wrap-x" class="igrp--last" style="display:none">
       <div class="ilbl">Feuchtegehalt x</div>
       <div class="iwrap">
         <input class="inp" id="hx-x" type="text"
@@ -691,8 +689,8 @@
     <div class="out-card tcp-card tcp-result-card tcp-card--spaced-sm" id="hx-state-result">
       <div class="result-main">
         <div class="result-main-lbl">Temperatur</div>
-        <div class="result-main-val" style="color:var(--t4)">
-          <span id="state-temp">&ndash;</span><span style="font-size:16px;font-weight:400;color:var(--t3)"> &deg;C</span>
+        <div class="result-main-val val--dim">
+          <span id="state-temp">&ndash;</span><span class="result-unit"> &deg;C</span>
         </div>
       </div>
       <div class="stats-grid4">
@@ -702,15 +700,15 @@
         </div>
         <div>
           <div class="stats-grid4-key">x g/kg</div>
-          <div class="stats-grid4-val" style="color:var(--blue)" id="state-x">&ndash;</div>
+          <div class="stats-grid4-val val--blue" id="state-x">&ndash;</div>
         </div>
         <div>
           <div class="stats-grid4-key">h kJ/kg</div>
-          <div class="stats-grid4-val" style="color:var(--blue)" id="state-h">&ndash;</div>
+          <div class="stats-grid4-val val--blue" id="state-h">&ndash;</div>
         </div>
         <div>
           <div class="stats-grid4-key">Td &deg;C</div>
-          <div class="stats-grid4-val" style="color:var(--cold-t)" id="state-tdew">&ndash;</div>
+          <div class="stats-grid4-val val--cold" id="state-tdew">&ndash;</div>
         </div>
       </div>
     </div>
@@ -718,12 +716,12 @@
 
   <!-- Diagramm -->
   <div class="gc tcp-card tcp-card--compact">
-    <div class="slbl" style="margin-bottom:10px">h,x-Diagramm nach Mollier</div>
+    <div class="slbl slbl--sm">h,x-Diagramm nach Mollier</div>
     <div class="hx-cvs-wrap">
       <canvas id="hxCanvas" style="width:100%;display:block;min-height:380px;touch-action:none"></canvas>
       <div id="hx-tip"></div>
     </div>
-    <div class="info-txt" style="text-align:center;margin-top:8px">
+    <div class="info-txt info-txt--center">
       Luftdruck 1013,25&thinsp;hPa &middot; Magnus-Formel &middot; T: &minus;20 bis +50&thinsp;&deg;C
     </div>
   </div>
@@ -768,22 +766,15 @@
   <!-- 4. Berechnung -->
   <div class="gc tcp-card">
     <div class="slbl">4. Berechnung</div>
-    <button id="hx-calc"
-      style="width:100%;height:52px;border:none;border-radius:var(--r-m);
-             background:linear-gradient(135deg,var(--grn),#28a87a);color:#000;
-             font-family:var(--f);font-size:15px;font-weight:700;cursor:pointer;
-             box-shadow:0 10px 28px rgba(52,211,153,.20)">
-      Berechnung starten
+    <button id="wrg-calc-btn" type="button" class="btn-wrg-calc">
+        Berechnung starten
     </button>
   </div>
 
   <!-- 5. Ergebnis -->
   <div class="gc tcp-card">
     <div class="slbl">5. Ergebnis</div>
-    <div id="hx-result"
-      style="font-family:var(--f);font-size:13px;color:var(--t3);
-             background:var(--glass-mid);border:1px solid var(--gb-soft);
-             border-radius:var(--r-m);padding:14px;min-height:54px;line-height:1.6">
+    <div id="hx-result" class="hx-state-box">
       Noch keine Berechnung durchgef&uuml;hrt
     </div>
   </div>
@@ -799,14 +790,14 @@
   <!-- ── WRG ── -->
   <div class="gc tcp-card">
     <div class="slbl">Wärmerückgewinnung (WRG)</div>
-    <div style="font-family:var(--f);font-size:11px;color:var(--t3);margin-bottom:var(--gap);line-height:1.55">
+    <div class="wrg-desc">
       Plattenwärmetauscher &middot; sensibler Wärmetransfer &middot; kein Feuchtetransfer
     </div>
 
     <div class="input-grid2">
       <!-- Abluft -->
       <div>
-        <div class="ilbl" style="color:var(--heat-t);margin-bottom:var(--gap-s)">&#8593; Abluft (LS1)</div>
+        <div class="ilbl ilbl--heat">&#8593; Abluft (LS1)</div>
         <div class="igrp tcp-input-group">
           <div class="ilbl">Temperatur T</div>
           <div class="iwrap">
@@ -824,7 +815,7 @@
       </div>
       <!-- Außenluft -->
       <div>
-        <div class="ilbl" style="color:var(--cold-t);margin-bottom:var(--gap-s)">&#8595; Außenluft (LS2)</div>
+        <div class="ilbl ilbl--cold">&#8595; Außenluft (LS2)</div>
         <div class="igrp tcp-input-group">
           <div class="ilbl">Temperatur T</div>
           <div class="input-with-sign">
@@ -859,7 +850,7 @@
   <div class="out-card tcp-card tcp-result-card">
     <div class="slbl">Ergebnis — WRG</div>
     <div id="wrg-result">
-      <p style="color:var(--t3);font-size:12px;text-align:center;padding:12px 0">Werte eingeben &rarr;</p>
+      <p class="wrg-hint-text">Werte eingeben &rarr;</p>
     </div>
   </div>
 
@@ -871,17 +862,17 @@
   </div>
 
   <!-- Trennlinie -->
-  <div style="height:1px;background:var(--gb-soft)"></div>
+  <div class="divider-h"></div>
 
   <!-- ── MISCHLUFT ── -->
   <div class="gc tcp-card">
     <div class="slbl">Luftmischung (Mischluft)</div>
-    <div style="font-family:var(--f);font-size:11px;color:var(--t3);margin-bottom:var(--gap);line-height:1.55">
+    <div class="wrg-desc">
       Massengewichtete Mischung zweier Luftstr&ouml;me
     </div>
 
     <!-- LS1 -->
-    <div class="gc gc-h" style="margin-bottom:var(--gap)">
+    <div class="gc gc-h wrg-gc--mb">
       <div class="ptitle"><div class="dot dot-h"></div><span class="ptitle-lbl">Luftstrom 1 (LS1)</span></div>
       <div class="input-grid2-sm">
         <div class="igrp tcp-input-group tcp-input-group--compact">
@@ -899,7 +890,7 @@
         <div class="igrp tcp-input-group tcp-input-group--compact">
           <div class="ilbl">V&#x307; [m&sup3;/h]</div>
           <div class="iwrap">
-            <input class="inp-sm" id="mix-ls1-vol" type="number" style="font-size:15px" min="0" step="100" placeholder="2000" inputmode="decimal"/>
+            <input class="inp-sm tw-inp--compact" id="mix-ls1-vol" type="number" min="0" step="100" placeholder="2000" inputmode="decimal"/>
           </div>
         </div>
       </div>
@@ -924,7 +915,7 @@
         <div class="igrp tcp-input-group tcp-input-group--compact">
           <div class="ilbl">V&#x307; [m&sup3;/h]</div>
           <div class="iwrap">
-            <input class="inp-sm" id="mix-ls2-vol" type="number" style="font-size:15px" min="0" step="100" placeholder="6000" inputmode="decimal"/>
+            <input class="inp-sm tw-inp--compact" id="mix-ls2-vol" type="number" min="0" step="100" placeholder="6000" inputmode="decimal"/>
           </div>
         </div>
       </div>
@@ -935,7 +926,7 @@
   <div class="out-card tcp-card tcp-result-card">
     <div class="slbl">Ergebnis — Mischluft</div>
     <div id="mix-result">
-      <p style="color:var(--t3);font-size:12px;text-align:center;padding:12px 0">Werte eingeben &rarr;</p>
+      <p class="wrg-hint-text">Werte eingeben &rarr;</p>
     </div>
   </div>
 
@@ -981,10 +972,10 @@
 
     <div class="gc tcp-card">
       <div class="slbl">1. Nutzungseinheiten</div>
-      <div class="info-txt" style="margin-bottom:12px">
+      <div class="info-txt info-txt--hint">
         Nutzungseinheiten zuerst erfassen. Standard-NE verwenden automatisch den Ansatz „zwei größte Entnahmestellen“. Sonderbereiche können über GL-Faktor angesetzt werden.
       </div>
-      <div style="display:grid;grid-template-columns:1fr auto;gap:10px;align-items:end">
+      <div class="tw-ne-row">
         <div class="igrp tcp-input-group tcp-input-group--compact">
           <div class="ilbl">Neue Nutzungseinheit</div>
           <select class="gl-sel" id="tw-new-ne-type">
@@ -1000,15 +991,15 @@
         </div>
         <button id="tw-add-ne" type="button" class="btn-add">+ NE</button>
       </div>
-      <div id="tw-ne-list" style="margin-top:10px"></div>
+      <div id="tw-ne-list" class="tw-ne-list"></div>
     </div>
 
     <div class="gc tcp-card">
-      <button id="tw-free-toggle" type="button" style="width:100%;border:0;background:transparent;color:var(--t1);text-align:left;display:grid;grid-template-columns:auto 1fr;gap:10px;align-items:center;padding:0;cursor:pointer">
-        <span id="tw-free-toggle-icon" style="font-size:17px;color:var(--blue)">▶</span>
+      <button id="tw-free-toggle" type="button" class="tw-free-toggle">
+        <span id="tw-free-toggle-icon" class="tw-free-toggle-icon">▶</span>
         <span class="slbl" style="margin:0">2. Frei im Gebäude verteilte Entnahmestellen</span>
       </button>
-      <div class="info-txt" style="margin:12px 0 8px">
+      <div class="info-txt info-txt--gap">
         Hier nur Verbraucher eintragen, die keiner Nutzungseinheit zugeordnet sind. Bei Bedarf aufklappen.
       </div>
       <div id="tw-free-fixtures" style="display:none"></div>
@@ -1021,14 +1012,14 @@
     <div class="out-card tcp-card tcp-result-card">
       <div class="slbl">3. Ergebnis &mdash; Trinkwasser</div>
       <div class="out-grid tcp-result-grid">
-        <div class="ob ob--row"><div class="ob-title" style="margin:0">Summendurchfluss kalt</div><div class="out-val has" id="tw-sum-cold" style="white-space:nowrap">–</div></div>
-        <div class="ob ob--row"><div class="ob-title" style="margin:0">Summendurchfluss warm</div><div class="out-val has" id="tw-sum-warm" style="white-space:nowrap">–</div></div>
-        <div class="ob ob--row"><div class="ob-title" style="margin:0">Summendurchfluss gesamt</div><div class="out-val has" id="tw-sum-total" style="white-space:nowrap">–</div></div>
-        <div class="ob ob--row"><div><div class="ob-title" style="margin:0">Spitzendurchfluss maßgebend</div><div style="font-family:var(--fm);font-size:12px;color:var(--t3);margin-top:4px" id="tw-peak-m3h">–</div></div><div class="out-val has" id="tw-peak" style="white-space:nowrap">–</div></div>
-        <div class="ob ob--row"><div class="ob-title" style="margin:0">Hauptleitungsdimension</div><div class="out-val has" id="tw-dn" style="white-space:nowrap">–</div></div>
-        <div class="ob ob--row"><div class="ob-title" style="margin:0">Hauswasserzähler</div><div class="out-val has" id="tw-meter" style="white-space:nowrap">–</div></div>
+        <div class="ob ob--row"><div class="ob-title">Summendurchfluss kalt</div><div class="out-val has" id="tw-sum-cold">–</div></div>
+        <div class="ob ob--row"><div class="ob-title">Summendurchfluss warm</div><div class="out-val has" id="tw-sum-warm">–</div></div>
+        <div class="ob ob--row"><div class="ob-title">Summendurchfluss gesamt</div><div class="out-val has" id="tw-sum-total">–</div></div>
+        <div class="ob ob--row"><div><div class="ob-title">Spitzendurchfluss maßgebend</div><div class="tw-peak-sub" id="tw-peak-m3h">–</div></div><div class="out-val has" id="tw-peak">–</div></div>
+        <div class="ob ob--row"><div class="ob-title">Hauptleitungsdimension</div><div class="out-val has" id="tw-dn">–</div></div>
+        <div class="ob ob--row"><div class="ob-title">Hauswasserzähler</div><div class="out-val has" id="tw-meter">–</div></div>
       </div>
-      <div style="display:grid;grid-template-columns:1fr;gap:8px;margin-top:10px">
+      <div class="tw-result-grid">
         <div class="chip">V<sub>R</sub> Nutzungseinheiten <strong id="tw-vr-ne">–</strong></div>
         <div class="chip">V<sub>R</sub> Gebäude <strong id="tw-vr-building">–</strong></div>
         <div class="chip">V<sub>R</sub> Gesamt <strong id="tw-vr-total">–</strong></div>
@@ -1040,10 +1031,10 @@
 
     <div class="gc tcp-card">
       <div class="slbl">4. Hygiene / Hinweise</div>
-      <div style="display:grid;grid-template-columns:1fr;gap:10px;margin-bottom:10px">
+      <div class="tw-strang-grid">
         <div><div class="ilbl">PWH-Leitungsvolumen</div><div class="iwrap"><input class="inp-sm" id="tw-line-vol" type="number" min="0" step="0.1" value="0"/><span class="iunit">l</span></div></div>
       </div>
-      <div class="chip" style="margin-bottom:10px">Zirkulation: <strong id="tw-circ">–</strong></div>
+      <div class="chip tw-circ-chip">Zirkulation: <strong id="tw-circ">–</strong></div>
       <div class="info-txt" id="tw-hints"></div>
     </div>
 
@@ -1136,7 +1127,7 @@
           <div class="gc ew-total-card tcp-card">
             <div class="slbl">Gesamtsumme — alle Stränge</div>
             <div id="ew-total-fixtures" class="ew-total-grid">
-              <p style="color:var(--t3);font-size:12px">Noch keine Stränge angelegt.</p>
+              <p class="unit-placeholder">Noch keine Stränge angelegt.</p>
             </div>
           </div>
         </div>
@@ -1154,7 +1145,7 @@
           <div class="ob ew-ob"><div class="ob-title">Fallleitung</div><div class="out-val has" id="ew-dim-fall">–</div></div>
           <div class="ob ew-ob"><div class="ob-title">Grundleitung</div><div class="out-val has" id="ew-dim-grund">–</div></div>
         </div>
-        <div class="chip" style="margin-top:10px"><strong id="ew-k-label">K = –</strong></div>
+        <div class="chip ew-chip--k"><strong id="ew-k-label">K = –</strong></div>
         <div class="ew-total-performance" id="ew-total-performance">Alle Stränge: –</div>
       </div>
 

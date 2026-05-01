@@ -73,8 +73,8 @@ function pCardSteel(p, vol, mx, isBest, bestCls) {
     <div class="pm-std">${p[4]} ${star}</div>
     <div class="pm-dn">DN\u2009${p[0]}</div>
     <div class="pm-dim">\u00d8\u2009${p[2]}\u202f\u00d7\u202f${p[3]}\u202fmm<br>d\u1d62\u2009${p[1].toFixed(1)}\u202fmm</div>
-    <div class="pm-r"><span class="pm-k">\u0394p/m</span><span class="pm-v" style="color:${col}">${dpTxt}<span style="font-size:11px;color:var(--t3)"> Pa/m</span></span></div>
-    <div class="pm-r"><span class="pm-k">v</span><span class="pm-v" style="font-size:11px;color:var(--t2)">${v.toFixed(2)}\u202fm/s</span></div>
+    <div class="pm-r"><span class="pm-k">\u0394p/m</span><span class="pm-v" style="color:${col}">${dpTxt}<span class="val--muted"> Pa/m</span></span></div>
+    <div class="pm-r"><span class="pm-k">v</span><span class="pm-v" class="pm-v--sm">${v.toFixed(2)}\u202fm/s</span></div>
     <div class="dpbar"><div class="dpfill" style="width:${pct}%;background:${col}"></div></div>
   </div>`;
 }
@@ -98,8 +98,8 @@ function pCardMapress(p, vol, mx, isBest, bestCls) {
     <div class="pm-std mp">Mapress Edelstahl ${star}</div>
     <div class="pm-dn">DN\u2009${p[0]}</div>
     <div class="pm-dim">\u00d8\u2009${p[6]}\u202f\u00d7\u202f${p[7]}\u202fmm<br>d\u1d62\u2009${p[5].toFixed(1)}\u202fmm</div>
-    <div class="pm-r"><span class="pm-k">\u0394p/m</span><span class="pm-v" style="color:${col}">${dpTxt}<span style="font-size:11px;color:var(--t3)"> Pa/m</span></span></div>
-    <div class="pm-r"><span class="pm-k">v</span><span class="pm-v" style="font-size:11px;color:var(--t2)">${v.toFixed(2)}\u202fm/s</span></div>
+    <div class="pm-r"><span class="pm-k">\u0394p/m</span><span class="pm-v" style="color:${col}">${dpTxt}<span class="val--muted"> Pa/m</span></span></div>
+    <div class="pm-r"><span class="pm-k">v</span><span class="pm-v" class="pm-v--sm">${v.toFixed(2)}\u202fm/s</span></div>
     <div class="dpbar"><div class="dpfill" style="width:${pct}%;background:${col}"></div></div>
   </div>`;
 }
@@ -130,7 +130,7 @@ function calcPipeTab() {
   const leg = $('pipe-legend');
 
   if (!vol) {
-    if (el) el.innerHTML = '<p style="font-family:var(--f);color:var(--t3);font-size:12px;text-align:center;padding:18px 0">Volumenstrom eingeben \u2192</p>';
+    if (el) el.innerHTML = '<p class="wrg-hint-text">Volumenstrom eingeben \u2192</p>';
     if (leg) leg.style.display = 'none';
     return;
   }
@@ -149,8 +149,8 @@ function calcPipeTab() {
   let h = '';
   for (let i = lo; i <= hi; i++) {
     const p = PIPES[i];
-    h += `<div style="margin-bottom:12px">
-      <div class="slbl" style="margin-bottom:7px">DN ${p[0]}</div>
+    h += `<div class="pipe-dn-wrap">
+      <div class="slbl pipe-dn-header">DN ${p[0]}</div>
       <div class="pipe-pair">
         ${pCardSteel(p, vol, mx, i === bS)}
         ${pCardMapress(p, vol, mx, i === bM)}

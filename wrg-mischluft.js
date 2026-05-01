@@ -48,32 +48,29 @@ function wrgToggleSign(inputId) {
 }
 
 /* ─── ZUSTANDSBOX HTML ─── */
-function _stateBox(title, s, color, sub) {
+function _stateBox(title, s, colorCls, sub) {
   return `
-  <div style="background:var(--glass-mid);border:1px solid var(--gb-soft);
-              border-radius:var(--r-m);padding:12px">
-    <div style="font-family:var(--f);font-size:10px;font-weight:700;
-                letter-spacing:.13em;text-transform:uppercase;
-                color:${color};margin-bottom:8px">${title}</div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:5px">
+  <div class="wrg-state-box">
+    <div class="wrg-state-title ${colorCls}">${title}</div>
+    <div class="wrg-state-vals">
       <div>
-        <div style="font-size:10px;color:var(--t3);font-family:var(--f)">T [°C]</div>
-        <div style="font-family:var(--fm);font-size:15px;font-weight:700;color:var(--t1);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${_fmt(s.T,1)}</div>
+        <div class="wrg-state-key">T [°C]</div>
+        <div class="wrg-state-val">${_fmt(s.T,1)}</div>
       </div>
       <div>
-        <div style="font-size:10px;color:var(--t3);font-family:var(--f)">φ [%]</div>
-        <div style="font-family:var(--fm);font-size:16px;font-weight:700;color:var(--t1)">${_fmt(s.phi,1)}</div>
+        <div class="wrg-state-key">φ [%]</div>
+        <div class="wrg-state-val wrg-state-val--lg">${_fmt(s.phi,1)}</div>
       </div>
       <div>
-        <div style="font-size:10px;color:var(--t3);font-family:var(--f)">x [g/kg]</div>
-        <div style="font-family:var(--fm);font-size:14px;font-weight:700;color:var(--blue)">${_fmt(s.x,2)}</div>
+        <div class="wrg-state-key">x [g/kg]</div>
+        <div class="wrg-state-val val--blue">${_fmt(s.x,2)}</div>
       </div>
       <div>
-        <div style="font-size:10px;color:var(--t3);font-family:var(--f)">h [kJ/kg]</div>
-        <div style="font-family:var(--fm);font-size:14px;font-weight:700;color:var(--blue)">${_fmt(s.h,1)}</div>
+        <div class="wrg-state-key">h [kJ/kg]</div>
+        <div class="wrg-state-val val--blue">${_fmt(s.h,1)}</div>
       </div>
     </div>
-    ${sub ? `<div style="font-size:10px;color:var(--t3);margin-top:7px;font-family:var(--f)">${sub}</div>` : ''}
+    ${sub ? \`<div class="wrg-state-sub">${sub}</div>\` : ''}
   </div>`;
 }
 
@@ -88,11 +85,11 @@ function calcWRG() {
   if (!el) return;
 
   if ([T_ab, ph_ab, T_au, ph_au, eta].some(isNaN)) {
-    el.innerHTML = '<p style="color:var(--t3);font-size:12px;text-align:center;padding:12px">Alle Felder ausfüllen →</p>';
+    el.innerHTML = '<p class="wrg-hint-text">Alle Felder ausfüllen →</p>';
     return;
   }
   if (eta < 0 || eta > 1) {
-    el.innerHTML = '<p style="color:rgba(255,100,80,.9);font-size:12px;text-align:center;padding:12px">⚠ Wirkungsgrad: 0–100 %</p>';
+    el.innerHTML = '<p class="wrg-err-text">⚠ Wirkungsgrad: 0–100 %</p>';
     return;
   }
 
@@ -114,22 +111,22 @@ function calcWRG() {
   const x_sat_fl     = _x(T_fl, 100);
   const delta_x_kond = kondensiert ? +(x_ab - x_sat_fl).toFixed(2) : 0;
   const kondText     = kondensiert
-    ? `<div style="margin-top:8px;padding:8px 10px;background:rgba(0,196,232,.09);border:1px solid rgba(0,196,232,.30);border-radius:var(--r-s)">
-         <div style="font-family:var(--f);font-size:10px;font-weight:700;letter-spacing:.10em;text-transform:uppercase;color:var(--cold-t);margin-bottom:3px">💧 Kondensat (Fortluft)</div>
-         <div style="font-family:var(--fm);font-size:14px;font-weight:700;color:var(--cold-t)">Δx = ${_fmt(delta_x_kond,2)} g/kg</div>
-         <div style="font-size:10px;color:var(--t3);margin-top:2px;font-family:var(--f)">Fortluft gesättigt · Entwässerung erforderlich</div>
+    ? `<div class="wrg-kond-box">
+         <div class="wrg-kond-title">💧 Kondensat (Fortluft)</div>
+         <div class="wrg-kond-val">Δx = ${_fmt(delta_x_kond,2)} g/kg</div>
+         <div class="wrg-kond-note">Fortluft gesättigt · Entwässerung erforderlich</div>
        </div>`
     : '';
 
   el.innerHTML = `
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:var(--gap-s);margin-bottom:var(--gap-s)">
-      ${_stateBox('LS3 — Zuluft',  s_zl, 'var(--heat-t)', 'Außenluft vorgewärmt')}
-      ${_stateBox('LS4 — Fortluft', s_fl, 'var(--cold-t)', kondensiert ? '⚠ Kondensation!' : 'Abluft abgekühlt')}
+    <div class="wrg-state-grid">
+      ${_stateBox('LS3 — Zuluft',  s_zl, 'wrg-state-title--heat', 'Außenluft vorgewärmt')}
+      ${_stateBox('LS4 — Fortluft', s_fl, 'wrg-state-title--cold', kondensiert ? '⚠ Kondensation!' : 'Abluft abgekühlt')}
     </div>
     ${kondText}
-    <div style="background:var(--blue-t);border:1px solid var(--blue-b);border-radius:var(--r-m);padding:10px 12px;margin-top:${kondensiert?'8':'0'}px">
-      <div style="font-family:var(--f);font-size:11px;font-weight:700;color:var(--blue);margin-bottom:4px">Bilanz WRG</div>
-      <div style="font-family:var(--fm);font-size:12px;color:var(--t2);line-height:1.7">
+    <div class="wrg-balance">
+      <div class="wrg-balance-title">Bilanz WRG</div>
+      <div class="wrg-balance-row">
         η<sub>t</sub> = ${_fmt(eta*100,0)}\u202f%
         &emsp;ΔT<sub>ZL</sub> = +${_fmt(dT_zl,1)}\u202fK
         &emsp;Δh<sub>ZL</sub> = +${_fmt(dQ_zl,1)}\u202fkJ/kg
@@ -149,7 +146,7 @@ function calcMix() {
   if (!el) return;
 
   if ([T1, ph1, vol1, T2, ph2, vol2].some(isNaN)) {
-    el.innerHTML = '<p style="color:var(--t3);font-size:12px;text-align:center;padding:12px">Alle Felder ausfüllen →</p>';
+    el.innerHTML = '<p class="wrg-hint-text">Alle Felder ausfüllen →</p>';
     return;
   }
 
@@ -167,23 +164,23 @@ function calcMix() {
   const sM  = { T: +TM.toFixed(1), phi: phM, x: +xM.toFixed(2), h: +hM.toFixed(1) };
 
   el.innerHTML = `
-    <div style="margin-bottom:10px;padding:12px 14px;background:rgba(52,211,153,.10);border:1px solid rgba(52,211,153,.28);border-radius:var(--r-m)">
-      <div style="font-family:var(--f);font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--grn);margin-bottom:4px">Gesamtvolumenstrom</div>
-      <div style="font-family:var(--fm);font-size:28px;font-weight:700;color:var(--t1);line-height:1">
-        ${_fmt(volM,0)}<span style="font-size:14px;font-weight:400;color:var(--t3);margin-left:4px">m³/h</span>
+    <div class="mix-total-box">
+      <div class="mix-total-label">Gesamtvolumenstrom</div>
+      <div class="mix-total-val">
+        ${_fmt(volM,0)}<span class="mix-total-unit">m³/h</span>
       </div>
-      <div style="font-size:11px;color:var(--t3);margin-top:3px;font-family:var(--f)">
+      <div class="mix-total-sub">
         ṁ = ${_fmt(mM,0)} kg/h · LS1: ${a1}% / LS2: ${a2}%
       </div>
     </div>
-    ${_stateBox('LS3 — Mischluft', sM, 'var(--grn)', '')}
-    <div style="background:var(--grn-t);border:1px solid var(--grn-b);border-radius:var(--r-m);padding:10px 12px;margin-top:8px">
-      <div style="font-family:var(--f);font-size:11px;font-weight:700;color:var(--grn);margin-bottom:4px">Mischungsbilanz</div>
-      <div style="font-family:var(--fm);font-size:12px;color:var(--t2);line-height:1.8">
-        ṁ₁ = ${_fmt(m1,0)} kg/h + ṁ₂ = ${_fmt(m2,0)} kg/h = <strong style="color:var(--grn)">${_fmt(mM,0)} kg/h</strong>
+    ${_stateBox('LS3 — Mischluft', sM, 'wrg-state-title--grn', '')}
+    <div class="wrg-balance wrg-balance--grn">
+      <div class="wrg-balance-title wrg-balance-title--grn">Mischungsbilanz</div>
+      <div class="wrg-balance-row wrg-balance-row--lg">
+        ṁ₁ = ${_fmt(m1,0)} kg/h + ṁ₂ = ${_fmt(m2,0)} kg/h = <strong class="wrg-balance-strong">${_fmt(mM,0)} kg/h</strong>
       </div>
-      <div style="font-size:11px;color:var(--t2);margin-top:3px;font-family:var(--fm)">
-        V̇₁ = ${_fmt(vol1,0)} m³/h + V̇₂ = ${_fmt(vol2,0)} m³/h = <strong style="color:var(--grn)">${_fmt(volM,0)} m³/h</strong>
+      <div class="wrg-balance-row">
+        V̇₁ = ${_fmt(vol1,0)} m³/h + V̇₂ = ${_fmt(vol2,0)} m³/h = <strong class="wrg-balance-strong">${_fmt(volM,0)} m³/h</strong>
       </div>
     </div>`;
 }
