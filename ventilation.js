@@ -1,49 +1,35 @@
 /* ═══════════════════════════════════════════════════════
-   ventilation.js  —  Massenstromrechner PWA
+   ventilation.js  —  TechCalc Pro
    Lüftung — Volumenstrom · Leistung · Temperaturdifferenz
    Abhängigkeit: app.js muss zuerst geladen sein ($, show, loc)
 ═══════════════════════════════════════════════════════ */
 'use strict';
 
-/* ───────────────────────────────────────
-   KONSTANTEN + ZUSTAND
-─────────────────────────────────────── */
+/* ─── KONSTANTEN + ZUSTAND ─── */
 const CP_AIR = 1005;  // J/(kg·K)
-
-const LST = { hk: 'h', mode: 'v', qUnit: 'W' };
+const LST    = { hk: 'h', mode: 'v', qUnit: 'W' };
 
 /** Luftdichte nach idealer Gasgleichung [kg/m³] */
 function rhoAir(t) {
-  if (t <= -273.15) return NaN; // Absoluter Nullpunkt — unphysikalisch
+  if (t <= -273.15) return NaN;
   return 353.05 / (t + 273.15);
 }
 
-/* ───────────────────────────────────────
-   W / kW UMSCHALTEN
-─────────────────────────────────────── */
+/* ─── W / kW UMSCHALTEN ─── */
 function setLuftQUnit(unit) {
   LST.qUnit = unit;
-
   ['luft-q-in-h', 'luft-q-in-k'].forEach(id => {
     const inp = $(id);
-    if (inp) {
-      inp.step        = unit === 'kW' ? '0.1' : '100';
-      inp.placeholder = unit === 'kW' ? '0.00' : '0';
-    }
+    if (inp) { inp.step = unit === 'kW' ? '0.1' : '100'; inp.placeholder = unit === 'kW' ? '0.00' : '0'; }
   });
-
   const badge  = $('luft-q-unit-badge');   if (badge)  badge.textContent  = unit;
   const badge2 = $('luft-q-unit-badge-k'); if (badge2) badge2.textContent = unit;
-
   $('luft-wu') ?.classList.toggle('active', unit === 'W');
   $('luft-kwu')?.classList.toggle('active', unit === 'kW');
-
   calcLuft();
 }
 
-/* ───────────────────────────────────────
-   SICHTBARKEIT — identisch zu updateLayout(p)
-─────────────────────────────────────── */
+/* ─── SICHTBARKEIT ─── */
 function updateLuftLayout() {
   const m = LST.mode;
   show($('luft-ig-q'),       m !== 'q');
@@ -51,12 +37,9 @@ function updateLuftLayout() {
   show($('luft-temp-block'), m !== 'dt');
 }
 
-/* ───────────────────────────────────────
-   HEIZUNG ↔ KÜHLUNG UMSCHALTEN
-─────────────────────────────────────── */
+/* ─── HEIZUNG ↔ KÜHLUNG UMSCHALTEN ─── */
 function luftSwitch(hk) {
   LST.hk = hk;
-
   $('luft-btn-h').className = 'hk-btn' + (hk === 'h' ? ' on-h' : '');
   $('luft-btn-k').className = 'hk-btn' + (hk === 'k' ? ' on-k' : '');
 
@@ -80,13 +63,10 @@ function luftSwitch(hk) {
 
   show($('luft-q-wrap-h'), hk === 'h');
   show($('luft-q-wrap-k'), hk === 'k');
-
   calcLuft();
 }
 
-/* ───────────────────────────────────────
-   MODUS WECHSELN (Volumenstrom / Leistung / Δt)
-─────────────────────────────────────── */
+/* ─── MODUS WECHSELN ─── */
 function luftMode(m) {
   LST.mode = m;
   document.querySelectorAll('.mbtn[data-lm]')
@@ -95,23 +75,20 @@ function luftMode(m) {
   calcLuft();
 }
 
-/* ───────────────────────────────────────
-   BERECHNUNG
-─────────────────────────────────────── */
+/* ─── BERECHNUNG ─── */
 function calcLuft() {
-  const hk = LST.hk;
-  const m  = LST.mode;
-
-  const vv    = parseFloat($('luft-v')?.value);
-  const vvOk  = !isNaN(vv) && vv > 0;
-  const tzlH  = parseFloat($('luft-tzl-h')?.value);
-  const tzlK  = parseFloat($('luft-tzl-k')?.value);
-  const tzl   = hk === 'h' ? tzlH : tzlK;
-  const trH   = parseFloat($('luft-tr-h')?.value)     || 20;
-  const trK   = parseFloat($('luft-tr-k')?.value)     || 26;
-  const tr    = hk === 'h' ? trH : trK;
-  const qRaw  = parseFloat($('luft-q-in-' + hk)?.value);
-  const qIn   = (!isNaN(qRaw) && qRaw > 0) ? (LST.qUnit === 'kW' ? qRaw * 1000 : qRaw) : 0;
+  const hk   = LST.hk;
+  const m    = LST.mode;
+  const vv   = parseFloat($('luft-v')?.value);
+  const vvOk = !isNaN(vv) && vv > 0;
+  const tzlH = parseFloat($('luft-tzl-h')?.value);
+  const tzlK = parseFloat($('luft-tzl-k')?.value);
+  const tzl  = hk === 'h' ? tzlH : tzlK;
+  const trH  = parseFloat($('luft-tr-h')?.value) || 20;
+  const trK  = parseFloat($('luft-tr-k')?.value) || 26;
+  const tr   = hk === 'h' ? trH : trK;
+  const qRaw = parseFloat($('luft-q-in-' + hk)?.value);
+  const qIn  = (!isNaN(qRaw) && qRaw > 0) ? (LST.qUnit === 'kW' ? qRaw * 1000 : qRaw) : 0;
   const qInOk = qIn > 0;
 
   // Automatische Temperaturdifferenz
@@ -126,26 +103,24 @@ function calcLuft() {
     const bc  = hk === 'h' ? 'rgba(255,107,53,.10)' : 'rgba(0,196,232,.10)';
     const bc2 = hk === 'h' ? 'rgba(255,107,53,.40)' : 'rgba(0,196,232,.40)';
     const tc  = hk === 'h' ? 'var(--heat-t)' : 'var(--cold-t)';
-    dtAutoEl.style.cssText = 'font-size:18px;padding:11px 52px 11px 14px;' +
-      (valid ? `background:${bc};border:1.5px solid ${bc2};color:${tc}` : '');
+    dtAutoEl.style.cssText = 'font-size:18px;padding:11px 52px 11px 14px;'
+      + (valid ? `background:${bc};border:1.5px solid ${bc2};color:${tc}` : '');
   }
 
   const dt   = m !== 'dt' ? (!isNaN(dtAuto) && dtAuto > 0 ? dtAuto : 0) : 0;
   const tRef = !isNaN(tzl) && tzl > -273 ? tzl : 20;
   const rho  = rhoAir(tRef);
-  const fac  = rho * CP_AIR / 3600;   // Wh/(m³·K)
+  const fac  = rho * CP_AIR / 3600;
 
-  // Luftkennwerte anzeigen
   const rd = $('luft-rho-display');
   if (rd) rd.textContent = rho.toFixed(3) + '\u202fkg/m\u00b3';
   const fd = $('luft-factor-display');
   if (fd) fd.textContent = fac.toFixed(4) + '\u202fWh/(m\u00b3\u00b7K)';
 
-  // Kernberechnung
   let Q = 0, V = 0, dT = 0, ok = false;
-  if (m === 'v'  && qInOk && dt > 0)         { V = qIn / (fac * dt); Q = qIn; dT = dt; ok = true; }
-  if (m === 'q'  && vvOk  && dt > 0)         { Q = (vv||0) * fac * dt; V = vv||0; dT = dt; ok = true; }
-  if (m === 'dt' && vvOk  && qInOk)          { dT = qIn / ((vv||0) * fac); Q = qIn; V = vv||0; ok = true; }
+  if (m === 'v'  && qInOk && dt > 0)  { V = qIn / (fac * dt); Q = qIn;       dT = dt; ok = true; }
+  if (m === 'q'  && vvOk  && dt > 0)  { Q = vv * fac * dt;    V = vv;        dT = dt; ok = true; }
+  if (m === 'dt' && vvOk  && qInOk)   { dT = qIn / (vv * fac);Q = qIn;       V  = vv; ok = true; }
 
   const ms   = ok ? V * rho : 0;
   const col  = hk === 'h' ? 'var(--heat-t)' : 'var(--cold-t)';
@@ -157,7 +132,6 @@ function calcLuft() {
     ? (m === 'v' ? loc(V * rho, 1) + '\u202fkg/h' : m === 'q' ? loc(Q / 1000, 2) + '\u202fkW' : '')
     : '';
 
-  // Ergebnis-Hauptfeld
   const llbl = $('luft-main-lbl'); if (llbl) llbl.textContent = lbl;
   const mv   = $('luft-main-val');
   if (mv) {
@@ -167,7 +141,6 @@ function calcLuft() {
   const ms2 = $('luft-main-sub');
   if (ms2) { ms2.style.color = sub2; ms2.textContent = sub; }
 
-  // Detail-Grid
   const sv = (id, on, v) => {
     const e = $(id);
     if (e) { e.textContent = on ? v : '\u2013'; e.style.color = on ? 'var(--t1)' : 'var(--t4)'; }
@@ -177,26 +150,28 @@ function calcLuft() {
   sv('luft-dt-out', ok,               loc(dT, 2));
 
   const msel = $('luft-ms');
-  if (msel) {
-    msel.textContent = ok ? loc(ms, 1) : '\u2013';
-    msel.style.color = ok ? 'var(--air-t)' : 'var(--t4)';
-  }
+  if (msel) { msel.textContent = ok ? loc(ms, 1) : '\u2013'; msel.style.color = ok ? 'var(--air-t)' : 'var(--t4)'; }
 }
 
-/* ───────────────────────────────────────
-   EVENTS + INIT
-─────────────────────────────────────── */
+/* ─── EVENTS + INIT ─── */
 document.addEventListener('DOMContentLoaded', () => {
-  // Mode-Buttons Lüftung
+  // Modus-Buttons
   document.querySelectorAll('.mbtn[data-lm]')
     .forEach(b => b.addEventListener('click', () => luftMode(b.dataset.lm)));
+
+  // Heizung / Kühlung Umschalter (onclick aus HTML entfernt)
+  $('luft-btn-h')?.addEventListener('click', () => luftSwitch('h'));
+  $('luft-btn-k')?.addEventListener('click', () => luftSwitch('k'));
+
+  // W / kW Umschalter (onclick aus HTML entfernt)
+  $('luft-wu') ?.addEventListener('click', () => setLuftQUnit('W'));
+  $('luft-kwu')?.addEventListener('click', () => setLuftQUnit('kW'));
 
   // Eingabefelder
   ['luft-v', 'luft-tzl-h', 'luft-tzl-k', 'luft-tr-h', 'luft-tr-k',
    'luft-q-in-h', 'luft-q-in-k']
     .forEach(id => $(id)?.addEventListener('input', calcLuft));
 
-  // Init
   luftSwitch('h');
   updateLuftLayout();
   calcLuft();

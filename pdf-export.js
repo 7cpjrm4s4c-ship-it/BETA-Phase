@@ -1,14 +1,34 @@
 /* ═══════════════════════════════════════════════════════
-   pdf-export.js  —  Massenstromrechner PWA
+   pdf-export.js  —  TechCalc Pro PWA
    A4-PDF-Export via separatem Print-DOM + window.print()
 
    Unterstützte Tabs:
-   · Heizung/Kälte  (Massenstrom, Leistung, Δt + Rohrempfehlung)
+   · Heizung/Kälte  (Leistung, Δt + Rohrempfehlung)
    · Lüftung        (Volumenstrom, Leistung, Δt)
    · Rohrdimensionierung
    · h,x-Diagramm   (Canvas-PNG + Zustandstabelle)
 ═══════════════════════════════════════════════════════ */
 'use strict';
+
+/* PHASE 17 PDF SNAPSHOT REGISTRY */
+window.TCP_PDF_SNAPSHOTS = window.TCP_PDF_SNAPSHOTS || {};
+function _pdfSnapshot(moduleName) {
+  try {
+    const provider = window.TCP_PDF_SNAPSHOTS && window.TCP_PDF_SNAPSHOTS[moduleName];
+    return (typeof provider === 'function') ? provider() : null;
+  } catch (e) {
+    console.warn('[PDF] Snapshot failed:', moduleName, e);
+    return null;
+  }
+}
+function _pdfActiveTab() {
+  if (window.NAV && typeof window.NAV.activeTab === 'string' && window.NAV.activeTab) return window.NAV.activeTab;
+  const pillActive = document.querySelector('.pill-btn.active');
+  if (pillActive?.dataset?.tab) return pillActive.dataset.tab;
+  const activePanel = document.querySelector('.tab-panel.is-active[id^="tab-"]');
+  if (activePanel) return activePanel.id.replace(/^tab-/, '');
+  return 'flow';
+}
 
 /* ───────────────────────────────────────
    MODAL — Projektdaten erfassen
@@ -20,11 +40,14 @@ function openPdfSheet() {
   const today = new Date().toLocaleDateString('de-DE', {
     day: '2-digit', month: '2-digit', year: 'numeric'
   });
+  const activeProjectMeta = typeof window.getActiveProjectMeta === 'function'
+    ? (window.getActiveProjectMeta() || {})
+    : {};
 
   const modal = document.createElement('div');
   modal.id = 'pdf-modal';
   modal.innerHTML = `
-    <div id="pdf-overlay" onclick="closePdfSheet()"></div>
+    <div id="pdf-overlay" id="pdf-overlay-bg"></div>
     <div id="pdf-sheet">
       <div class="sh-handle"></div>
       <div class="sh-title">PDF exportieren</div>
@@ -34,7 +57,7 @@ function openPdfSheet() {
         <div class="igrp">
           <div class="ilbl">Sachbearbeiter</div>
           <div class="iwrap">
-            <input class="inp" id="pdf-sb" type="text" placeholder="Name"
+            <input class="inp" id="pdf-sb" type="text" placeholder="Name" value="${_pdfAttr(activeProjectMeta.sb || '')}"
               style="font-size:16px;padding:12px 14px"/>
           </div>
         </div>
@@ -42,7 +65,7 @@ function openPdfSheet() {
         <div class="igrp">
           <div class="ilbl">Projekt</div>
           <div class="iwrap">
-            <input class="inp" id="pdf-pj" type="text" placeholder="Projektbezeichnung"
+            <input class="inp" id="pdf-pj" type="text" placeholder="Projektbezeichnung" value="${_pdfAttr(activeProjectMeta.proj || '')}"
               style="font-size:16px;padding:12px 14px"/>
           </div>
         </div>
@@ -51,7 +74,7 @@ function openPdfSheet() {
           <div>
             <div class="ilbl">Projektnummer</div>
             <div class="iwrap">
-              <input class="inp" id="pdf-nr" type="text" placeholder="z.B. 2024-001"
+              <input class="inp" id="pdf-nr" type="text" placeholder="z.B. 2024-001" value="${_pdfAttr(activeProjectMeta.nr || '')}"
                 style="font-size:15px;padding:12px 14px"/>
             </div>
           </div>
@@ -64,14 +87,14 @@ function openPdfSheet() {
           </div>
         </div>
 
-        <button onclick="triggerPdfPrint()"
+        <button id="pdf-btn-save" type="button"
           style="width:100%;height:54px;border:none;border-radius:14px;
                  background:linear-gradient(135deg,#4fa8ff,#2e80d8);
                  color:#fff;font-size:16px;font-weight:700;cursor:pointer;
                  margin-top:8px;box-shadow:0 10px 30px rgba(79,168,255,.25)">
           Als PDF speichern
         </button>
-        <button onclick="closePdfSheet()"
+        <button id="pdf-btn-cancel" type="button"
           style="width:100%;height:44px;border:none;border-radius:12px;
                  background:rgba(255,255,255,.07);color:rgba(255,255,255,.55);
                  font-size:14px;cursor:pointer;margin-top:8px">
@@ -86,11 +109,11 @@ function openPdfSheet() {
   style.id = 'pdf-modal-style';
   style.textContent = `
     #pdf-overlay {
-      position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:500;
+      position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:800;
       backdrop-filter:blur(6px);
     }
     #pdf-sheet {
-      position:fixed;bottom:0;left:0;right:0;z-index:501;
+      position:fixed;bottom:0;left:0;right:0;z-index:850;
       background:#111;
       border-radius:22px 22px 0 0;
       border-top:1px solid rgba(255,255,255,.12);
@@ -111,9 +134,32 @@ function openPdfSheet() {
     .sh-body{}
   `;
 
-  document.head.appendChild(style);
-  document.body.appendChild(modal);
-  setTimeout(() => document.getElementById('pdf-sb')?.focus(), 100);
+  try {
+    document.head.appendChild(style);
+  } catch(e) { console.warn('[PDF] head.appendChild failed:', e.message); }
+
+  try {
+    document.body.appendChild(modal);
+  } catch(e) {
+    console.error('[PDF] body.appendChild failed:', e.message);
+    document.documentElement.appendChild(modal);
+  }
+
+  // EventListener nach DOM-Insert (kein inline onclick)
+  document.getElementById('pdf-overlay-bg') ?.addEventListener('click', closePdfSheet);
+  document.getElementById('pdf-btn-save')   ?.addEventListener('click', triggerPdfPrint);
+  document.getElementById('pdf-btn-cancel') ?.addEventListener('click', closePdfSheet);
+
+  setTimeout(() => {
+    const sb = document.getElementById('pdf-sb');
+    if (sb) sb.focus();
+    else console.warn('[PDF] pdf-sb input not found after modal insert');
+  }, 150);
+}
+
+
+function _pdfAttr(v) {
+  return String(v || '').replace(/[&<>"]/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m]));
 }
 
 function closePdfSheet() {
@@ -133,19 +179,8 @@ function triggerPdfPrint() {
   };
 
   closePdfSheet();
-
-  // Aktiven Tab ermitteln
-  // Aktiven Tab ermitteln — aus DOM oder URL
-  let activeTab = 'flow';
-  // Check which tab panel is visible
-  ['flow','luft','pipe','unit','hx','wrg'].forEach(id => {
-    const el = document.getElementById('tab-' + id);
-    if (el && el.style.display !== 'none' && el.style.display !== '') activeTab = id;
-    if (el && !el.style.display && id === 'flow') activeTab = 'flow';
-  });
-  // Fallback: check pill active button
-  const pillActive = document.querySelector('.pill-btn.active');
-  if (pillActive?.dataset?.tab) activeTab = pillActive.dataset.tab;
+  // Aktiven Tab zentral ermitteln: NAV → aktive Pill → aktives Panel → flow
+  const activeTab = _pdfActiveTab();
 
   let html = '';
   if      (activeTab === 'flow') html = _buildFlowPage(meta);
@@ -153,6 +188,9 @@ function triggerPdfPrint() {
   else if (activeTab === 'pipe') html = _buildPipePage(meta);
   else if (activeTab === 'hx')   html = _buildHxPage(meta);
   else if (activeTab === 'wrg')  html = _buildWrgPage(meta);
+  else if (activeTab === 'trinkwasser') html = _buildTrinkwasserPage(meta);
+  else if (activeTab === 'mag') html = _buildMagPage(meta);
+  else if (activeTab === 'entwaesserung') html = _buildEntwaesserungPage(meta);
   else                           html = _buildFlowPage(meta);
 
   _openPrintWindow(html);
@@ -183,7 +221,7 @@ function _openPrintWindow(bodyHtml) {
   overlay.innerHTML = `
     <div class="msr-pbar">
       <button class="msr-pbtn-close" id="msr-close-pdf">&#10005; Schlie&szlig;en</button>
-      <button class="msr-pbtn-print" onclick="window.print()">
+      <button class="msr-pbtn-print" id="msr-print-btn" type="button">
         &#128438;&nbsp;Drucken&nbsp;/&nbsp;PDF
       </button>
     </div>
@@ -238,6 +276,7 @@ function _openPrintWindow(bodyHtml) {
     overlay._headStyle?.remove();
     document.getElementById(PRINT_ID)?.remove();
   });
+  document.getElementById('msr-print-btn')?.addEventListener('click', () => window.print());
 }
 
 /* ───────────────────────────────────────
@@ -264,7 +303,7 @@ html,body{
   display:flex;justify-content:space-between;align-items:flex-end;
   border-bottom:2px solid #1a3a5c;padding-bottom:7px;margin-bottom:10px;
 }
-.ph-l h1{font-size:13pt;color:#1a3a5c;font-weight:700;letter-spacing:-.2px}
+.ph-l{display:flex;align-items:center}.ph-l h1{font-size:13pt;color:#1a3a5c;font-weight:700;letter-spacing:-.2px}
 .ph-l p {font-size:7.5pt;color:#777;margin-top:1px}
 .ph-r   {font-size:7.5pt;color:#555;text-align:right;line-height:1.6}
 .ph-r strong{color:#1a3a5c;font-size:9pt}
@@ -338,8 +377,12 @@ function _header(meta, subtitle) {
   return `
   <div class="ph">
     <div class="ph-l">
-      <h1>ṁ Massenstromrechner</h1>
-      <p>${subtitle}</p>
+      <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADAAAAAwCAYAAABXAvmHAAASv0lEQVR42nWaaYxkV3XHf+fe+96r6n2Znu4Zz2DPeJl4jHcbTGT2CBRAgWAckQihCCkhTmQF5UMWRSz5EAkpUkAkfAmRoighiwJKQowhhNiRjfHOYIzHHs++9t5V3bW+5d6bD/e9qurBtNRd3dVV9e7Z/ud//ueJIJ6rv2TwAxFBRAHgvccPX/AGX3LVvwQBPCDV8x78yGW8MDzByHtFJFzPOYbvqH71g+fkjQ2Q8gPAe/vzD1s9KrX70D9z6qvfd9UlffXgCRe15ZMKpSMQSkNGX+zxeMyuD5TK6wrnCgD27T/I0Vtv55qD1zExOYXSBlsU5EWBtY4sS1ldXcVZi3MO6+zINcJFKmO99wPHiFTRFUDQWoEoRMDmKdtbG1y5dIGNjTW89Sht8N7tCp94MCEAMuL8cPj5PXt56/3v5e773s7E5DRpmpFmKUWRk6UZkS3wCNvNBlG9gxLBOo+z9ioPC3iPlFFSKqSkiCBKoZRCKY02BmMMJoqJoog4MnR2mpw+8VNeP/4SWxsbKBPhcSFKw1RT/urDH77xF3jvBz7GwWsP02q3aGxt0ev3sEWBtQW2KHDO4bxndeUKtiiCZ8sw+yrE3peHDd4H0FoPfq+MEAlGGGPQJiJOEianZpif30MURVw4c4Jjzz7BpfNnEG3C+70H7zBXH/6662/iAx/9BItL13Dp0kUajQZ5luGcxXkfHq3F42nv7LDTbA4O5b3bndreBQOq9FEyTOMyfQQJ2V5GQ5RGa0NrZ4ftZoOFvYvcdMsd1OtjPPnYo1y5cC5EwlsQCQaEw1umZ+Z59/s/wv5r3sTJkydpNLco8pwiz3ElAnkXct05R3O7gXUFtjp46fWqrgQ/AjEe3EiRI0PUKt8T6iJEo8gz8iyl1+uQphmHrz/CXZ0Wre1tWjvbKK3wzoUiri5x2z1v48jR2zh95iwbG+vkWTpSsJY07YF1OFvQ7bRobKwhoobFia/ANxxqgEY+AKpUxVwW8VWwK9rgRZHUatg4oSgKnLNcuXSBKIo4cvR2zp0+yU+PPTeoWyNK4WzB9Owe7rj7rbS7PVZXV0jTPlnaxzkXIpDUeecf/DGrV5bZOXeaXpaxp99DSekAkTLXwYsM0qmKSIieR1Uo7kqvI6CEIs2YPHgdB269lae//EXS9WVcrV5GXrh88TzzCwscOXobp15/hX43AMcARhf3XcPS/oOcPX+RXrdNlqUUeY51nqzfZ2JunheuuZNs7DDz97yfpJ5Q04JSZbpI8LjWgvIuJEiZ885D4Txog0XhygbmLHgXskxy2Nlocn5hhsn5vaxcOouKomC00oCwtrbK4v4DTM/M0e+0QelhEc/OL5DU6mxubpBlWch9a7HWUhQ5vW6HK0+/zNap0/Ryj54YB6MQqZDeIcoTjcVML80T1xNUFD7e5pZet09na4e87yicxlsJNVE11W6PcckYP3oLM+0O3gewQHnyPAWEZqPB4sICExNTrJY1Y6piqo+N47yn3WpRFOXh8xzrHDhLa6dNe3ML19lBd1OUy1FagxJEK8R7LA7lPNnyOpOH9mGLUBtpu0V/eQMaPezyGsoBXoX6dh6cw/c6FFpoNrvYrS3GgKIoUEqVqabodtrkRUGU1AY9xlRF5D3stNrkeRbwvsR66ywOIWus03v0axSbK/i187io/JCSJ4XO6PAze/Dv+Bj1m66lrxz9bp88TaktX6D56D/ht1ZCqYsKlVx1V5uT16dhYh7bX8HVE3AWAaxzKGfJspQsy8vuHb7KCCic92RZhrXFACatc9jCloWc4V78DiiNjmv4fm9Xt3VFjisK/MY58ouncfffy+z1B7hsc8axXPj6l3CNy5jJmbIRVSgqFQvC77SR7YswtxcnGiUaL6E3OO8p8oKiKIY8SwQlJfMSpXHOk+cFhbU4Z0PXtQXWWbKiIJ5ZwElEkRZYp7EYrDdYC9H0PNM33UK85wD0t8kvvM7U1DjJ1Bhu5TyuuUY0t0jRzfBWUGIQrxEUgkZ5jdIJKh6nyAqybp+sn5L1+7SbTfI0xXmPtRbnXQnJUhVxoK7OuRABaymKgsI6PEJeWDqNBmZqhrs//AAH33Iv43v3gQ5dtp/l6MlZ9h46zL/+2kdYW18mFk+kHFpbwCFKk0xMce+nf5/NU6dpX75EHEeBXlcRqbDdRETGgAOJ6txw1z2cf+GH5M1VlFKhLstXGz9KaUVKIyzWOpwL7bq5tsb+932ID372j0iOXMuFLmy2oWddiFqW01nb4HSqiZO4LDqPpsC4PlGsEDz1vUtED/4ueze3ua5eJ0niMgKC8oJU3w6MF/BCa3mb8QPzTLVh5bF/wJVJVzVBU/3pAedCFCpqLEqzvb7G0kd/gwe/9Gf8aMvy9LeOs726jXWCMiZ4pN9jvLVFvLQfm6blPJCjXZ+YPj3bxyhFXuQ898+P4JfXydUEEo+B14gyiIoQp8LfXpcQa5DGMsncDcyvLRPpkEIMurpghu195PDe4UXIdrbhljv50J9/nu+davLMt59Fzp1Hzr+G2l5FiyAmQtIu2Z4l0htuRW1uoKMI7VK07RO7DrW8iTaavNEg/ukP8etrqNyhTQ1xAURA4SXCofFOcA6cA7IO6fR5NtvH2RuXjHeEfpjhaBZiEbzvEe9p9jPe/tDDnErhme/8CP3ic/in/g136VXAMZzVHEgCJmJscpLCCy7v4X0PkzeJ+1vk1jHWadB+4h+hyPA2G0LwVSOqH/0hhsxMQKJx1x0GH6BVpEyhAR7jA132HucdWbtFdP0R5u+8m/86dgUuXsY/9U38pePIxGygvtXsGMhNyT6FpX1LLE4mjLV3mO11masZmgcPsNFsgrV40Ug8MTy2yK6ZOjIaJVC4kuG6nCiKR9jucOI2Q+7OCKcXuq0WU0dvY63QbG12iTYvkq+cRk/vwVQTVcWG8QgGay2zs3P81u99hkxpLjz6LKbZwPc63HrXPVw+9Qq9nU2U0kPjB6NnMCIvLGvNHtt9x+R4glaC84oojqtD7ponTEV/lVLg/QBCsyxDTc2x3OhRE4jSbXI8UZRgJIyGw3G3pMveYZIar5w4zYnjx1GqIOu2Wbl0kX4Of/s7b+bBX347mVVoJbtmCO+C84oCLm1mfOP7r/PVR06SOU0SG0TpoacH5jKMgFKqRCJLlvYBR9pw1F5LmTmn6fZqaGOItEEpUKJ2yRvVuJhlORfOneXSudd53wffgzjLuRPHkWSCs88/x4p7HhfFVPYrGco3HlDGcHhpls996lbedfMsn/jLF+h5wajgcaVkV92YUcUAwBaWohwZXTpJrzlBa7MgKhYRpVFaI/hB0VcQXD2Hc6xducS+pXlOv3aCdLvBDYcPcvzkBdZWCl59tk0S6xBFCQb4svas98RG2Ji8wvSrJ3nHe97NZz98iM/8yxlmYzPwfKg/hiNlNb8658jzrDTGk3d71FJLZHOS+X20VYyIDtRZRiavQS6FRri1scbN77gbLR49bpnQjtdO5Dy5bPm/U5bIeLSAlgCgVWZYD5PG89Bd47xrX532S8/zq7cf5a++F3G5WzDm3a70kaALjcBXqTTgg1bVX77IdOqw7Q6zN97NRn0RoQ8qxvtiCCDeUWWmUobp2Uke/+7jjNUjIvH0ul1uvGaenU6DU20FJirnSj8yF4fREwvHH2vw4v2HifN1ksZlDs9pzm5bFFePoTKqSoQxUEpDdJTQOvci+XabrNNjZuEQB3/pIS7+5xeYml9AdDJSUB5vLSKaTrvN4uwCS2++jUilTPXWmJMakSieW8+p1eoYo8pU2KXvDdj55k7BuY2UWxYmaSy38bnH+2ror1S5snbLroASVaKUC9KeqSONn7Bx7AfESY2Tz73GXQ/8Nkce/ByZj+m0unRabdo7bVrNHdLcIck0eZ5y8oXHcQcOsHTfzey/NqGmWnz72dfZSSFKYuI4xsQJFkPuNYXXZF5jUTT7wkLkuPGew2jfxPd26HXTANbOlbXGKAqVypkotFIDUHEOjPG0n/8yyb1/QSdt89T3Eu7/lYe46wMPkK+8grJ9ANJ+TjK1l7HF/XzzTz5Ov7HG4sISRxczFtwsW1kXVJMkSYiMptMvmIk9118zQWLUUGnznoSMP/z1tzI3p7j0+CqXOjOc3kyJTQ0QIqPRqnR2qIGhbjNU0DxKPCqeQu+8SPriF9GHPsn6q6/yyJUVDt58HYsH7iMZUygl2JpnZ3ubTj+GJMF72Kf7vCnK2TMOZtyAKCKj6aWWT71nHw9/8k4OTxZENoPSs84WKK2g0+b8f3yHXivhf850OddJWJwNB9YiqKriPJiquymRgQxYhUeJJ6rNYRuPYtNlksMPEMkhzjzd5BQmlJQSXN5nLGoR7d2L7Yeo7JEWS1Iwrfu0tSUymlbP8ul3TfOVz78Df+yHrD5xCpv5oDW5gC5Z6mg3c5Qa5+Ut4auvFozVYhCFEimF8KEYvQuFjFYjdMoh4tFaiOpz5L2X6L/8GnbmVvTMjUTxDKICmvi8jU/Gce4ArtUArZi1TeadZ8J3WZcU6xX7axl/+vEb6T/9A05892XEj1EUrgQQhfOQFkIzj/jBWsHXzlm29TgzkQ4GKIVRglYyyJSBAVrJCEEbkiWlFSbSILPYIiVvPgebTwUKPCBWDvQYYsZJogLREbO+xZSFMdcjKvo4C9fPKfb6DssvneLsdsJfv5pyuecxw9KjcLCRC5u5JqrVGU8iRGmkPHgS6aGj/agBpbxdYVVFWbVSoDXiQUmCNjHeuXIMdKUa4fGuQOiiTR2VW2ZVh2kvaJ9jyp5hgHxji7o2PLaR8b8bDqIIvBqyUiVEWjGRaJQ2KB2htEZLoBOJUZiStwU6XfnQWrTWKAl6TWCbodEYrQNuu9BpfclHhhsVD+gg9RmFUhnjrkPNaTQ5YnMA+rmjvSM4M0lftlEKJpIYW0mMlWKtwrJD6bA30EqhtSIyiomxkSYKGO89aEVrp0FRFNTqdfq99lU7CgkcSEKaee93UWG8H+CzKiOSSMGEcmiVI0UBotEKYungihbjsQrSiTZ4VLkAGSrUIoLWGqMDbGolTI3X0S6j2+kMNj2mInGtVovXXztOHMUopXHV5F+SLalCLCBeBhH33g2XPN4hPhRl1umwvKGRVkavX4AYvPNkNsFHkyjTBR3YJ4Qlx2jqVs5SSmGMZqwWk2jPxvIF0jQt5xaFERGwjm6vS17ktNutoEa80XpORpt+icUig/YuIhQOZsYUhSS4pUPYqT3YiydQKmOurpibSci7OxyaDrOwUjoovdXqqdobSkgboxUK6PW6GJdifEaz1R5shIz3DpSwtrrC0Xunmd57gJ2TL+9ab4oIXgKBDxfwI5tFdjXCrHDc+aZJ7r9rCbNxHOc8U/cscuuxy7ywYvnNvzlO1rec6SfUa+O4is+N0PPAdRy2CAOW1TA7lnDH4T2sbLfYaOyUqexCCiltaG2tc+XKMgeP3s/G+ird5jpFnoZQVtAqb7AsrVhkNZY6T24LZO0CF881cE5YWugQieNyV/P3r2lAQxIxM66otgTDWXdYWwJERlHTirfcuMB1S+M88vRxiiwnTiKccygqjq0Nrzz3fWw0yU33f4xobBYTB/7hKsnFuTD6lbTb7xoHwXlPEiuOnWvz3Rc3WRrXHJi0/PdPdnh5xTFVN0xO1picrDFVj/GoXVKE925IZcrGWjfCnYfm+ODbDvPjk5d56cQF4tjgnQXv0SLqC0Ebjcj7LTaXz3LbRx5m/sbbaFw8iy3S4Qf70aR5g2V1ubtNrePJU12a7ZwnzqZ89UdgoxqRCSsk0abcTpZbypFdtRDoQhwppscifvHIXj71/iOcXd/mK994njQrBtTfBRIa+UrpEh3hsi57Dt3B+z77d0TJBD/51j+wduIZstY6Lu+XlrvwXeV+NRt7j7cFzub005R+LwUv1OoRtSQOBy8Hkl24PzKTGC3UIs3iVI133jzPh+9b5MdnNvnC14+xvt0nMgpr3cCpIlLKoxUO6xiXdYnr09zx0Yc5cPt72dm4wuqZ47TXL5B3mhRZD1dkYHO8zcHl4CzeFcNHmyE+D5ETPYDEiq6o6luBUQqjhdgIUzXDwdmIW64ZY25CePLVdf79mYvkuSMyOszr5eHDGle0H9UaQyRM6ANFj/r0IkvX30Z9dgmUxto87AKcxRUFLs/AWWyR4W2B2BxxBWJTvMvR3qJVOQOrknOVsoxWMnjOKMEoiMThKdho9Tl5pUW7nZEkYaB31gVpfVB/rtrUy4hgWs511WKhyMGlFWMa3NghI3LIwPDRm1bKJfbP3hzih9cZCFp+8HvQaENSRCYYaSvwGNSiH9CYcLdKdYhBtxoxaKTQ/OiS9+fcdPMGiDuy3B550a77HUaEjZH9si9lzoGkWE5hg1sN8Pw/buq11aNiqMwAAAAASUVORK5CYII=" width="32" height="32"
+           style="border-radius:7px;margin-right:10px;vertical-align:middle;flex-shrink:0"/>
+      <div>
+        <h1>TechCalc <span style="font-weight:400;color:#4fa8ff;font-size:9pt">PRO</span></h1>
+        <p>${subtitle}</p>
+      </div>
     </div>
     <div class="ph-r">
       <strong>${meta.nr}</strong><br>
@@ -389,7 +432,7 @@ function _buildFlowPage(meta) {
   const modeLabel = { ms:'Massenstrom berechnen', q:'Leistung berechnen', dt:'ΔT berechnen' };
 
   return `
-  ${_header(meta, 'Heizung · Kälte — Massenstromberechnung')}
+  ${_header(meta, 'Heizung · Kälte — Berechnung')}
 
   <div class="sec">Wärmeträger</div>
   <table>
@@ -410,14 +453,14 @@ function _buildFlowPage(meta) {
         <td>${modeLabel[hMode] || hMode}</td>
         <td>${modeLabel[kMode] || kMode}</td></tr>
       <tr><td>Leistung Q</td>
-        <td class="num">${hMode !== 'ms' ? _fmt(hQ) + ' ' + hQUnit : '–'}</td>
-        <td class="num">${kMode !== 'ms' ? _fmt(kQ) + ' ' + kQUnit : '–'}</td></tr>
+        <td class="num">${hMode !== 'ms' ? _pdfFmt(hQ) + ' ' + hQUnit : '–'}</td>
+        <td class="num">${kMode !== 'ms' ? _pdfFmt(kQ) + ' ' + kQUnit : '–'}</td></tr>
       <tr><td>Massenstrom ṁ</td>
-        <td class="num">${hMode !== 'q'  ? _fmt(hMs) + ' kg/h' : '–'}</td>
-        <td class="num">${kMode !== 'q'  ? _fmt(kMs) + ' kg/h' : '–'}</td></tr>
+        <td class="num">${hMode !== 'q'  ? _pdfFmt(hMs) + ' kg/h' : '–'}</td>
+        <td class="num">${kMode !== 'q'  ? _pdfFmt(kMs) + ' kg/h' : '–'}</td></tr>
       <tr><td>Temperaturdifferenz ΔT</td>
-        <td class="num">${hMode !== 'dt' ? _fmt(hDt) + ' K' : '–'}</td>
-        <td class="num">${kMode !== 'dt' ? _fmt(kDt) + ' K' : '–'}</td></tr>
+        <td class="num">${hMode !== 'dt' ? _pdfFmt(hDt) + ' K' : '–'}</td>
+        <td class="num">${kMode !== 'dt' ? _pdfFmt(kDt) + ' K' : '–'}</td></tr>
     </tbody>
   </table>
 
@@ -534,15 +577,15 @@ function _buildLuftPage(meta) {
     <tbody>
       <tr>
         <td><span style="color:#c44000;font-weight:700">▲ Heizen</span></td>
-        <td class="num">${_fmt(tzlH)}</td>
-        <td class="num">${_fmt(trH)}</td>
-        <td class="num">${_fmtDiff(tzlH, trH)}</td>
+        <td class="num">${_pdfFmt(tzlH)}</td>
+        <td class="num">${_pdfFmt(trH)}</td>
+        <td class="num">${_pdfFmtDiff(tzlH, trH)}</td>
       </tr>
       <tr>
         <td><span style="color:#006a88;font-weight:700">▼ Kühlen</span></td>
-        <td class="num">${_fmt(tzlK)}</td>
-        <td class="num">${_fmt(trK)}</td>
-        <td class="num">${_fmtDiff(trK, tzlK)}</td>
+        <td class="num">${_pdfFmt(tzlK)}</td>
+        <td class="num">${_pdfFmt(trK)}</td>
+        <td class="num">${_pdfFmtDiff(trK, tzlK)}</td>
       </tr>
     </tbody>
   </table>
@@ -614,8 +657,8 @@ function _buildPipePage(meta) {
 
   <div class="sec">Parameter</div>
   <table>
-    <tr><td>Volumenstrom V̇</td><td class="num">${_fmt(vol)} m³/h</td></tr>
-    <tr><td>Max. Druckverlust</td><td class="num">${_fmt(dp)} Pa/m</td></tr>
+    <tr><td>Volumenstrom V̇</td><td class="num">${_pdfFmt(vol)} m³/h</td></tr>
+    <tr><td>Max. Druckverlust</td><td class="num">${_pdfFmt(dp)} Pa/m</td></tr>
   </table>
 
   <div class="sec">Rohre — Stahl &amp; Mapress Edelstahl</div>
@@ -666,9 +709,9 @@ function _buildWrgPage(meta) {
   <table>
     <thead><tr><th>Größe</th><th>Abluft (LS1)</th><th>Außenluft (LS2)</th></tr></thead>
     <tbody>
-      <tr><td>Temperatur T</td><td class="num">${_fmt(T_ab)} °C</td><td class="num">${_fmt(T_au)} °C</td></tr>
-      <tr><td>Rel. Feuchte φ</td><td class="num">${_fmt(ph_ab)} %</td><td class="num">${_fmt(ph_au)} %</td></tr>
-      <tr><td>Temperaturwirkungsgrad η</td><td colspan="2" class="num">${_fmt(eta)} %</td></tr>
+      <tr><td>Temperatur T</td><td class="num">${_pdfFmt(T_ab)} °C</td><td class="num">${_pdfFmt(T_au)} °C</td></tr>
+      <tr><td>Rel. Feuchte φ</td><td class="num">${_pdfFmt(ph_ab)} %</td><td class="num">${_pdfFmt(ph_au)} %</td></tr>
+      <tr><td>Temperaturwirkungsgrad η</td><td colspan="2" class="num">${_pdfFmt(eta)} %</td></tr>
     </tbody>
   </table>
 
@@ -679,9 +722,9 @@ function _buildWrgPage(meta) {
   <table>
     <thead><tr><th>Größe</th><th>Luftstrom 1 (LS1)</th><th>Luftstrom 2 (LS2)</th></tr></thead>
     <tbody>
-      <tr><td>Temperatur T</td><td class="num">${_fmt(T1)} °C</td><td class="num">${_fmt(T2)} °C</td></tr>
-      <tr><td>Rel. Feuchte φ</td><td class="num">${_fmt(ph1)} %</td><td class="num">${_fmt(ph2)} %</td></tr>
-      <tr><td>Volumenstrom V̇</td><td class="num">${_fmt(vol1)} m³/h</td><td class="num">${_fmt(vol2)} m³/h</td></tr>
+      <tr><td>Temperatur T</td><td class="num">${_pdfFmt(T1)} °C</td><td class="num">${_pdfFmt(T2)} °C</td></tr>
+      <tr><td>Rel. Feuchte φ</td><td class="num">${_pdfFmt(ph1)} %</td><td class="num">${_pdfFmt(ph2)} %</td></tr>
+      <tr><td>Volumenstrom V̇</td><td class="num">${_pdfFmt(vol1)} m³/h</td><td class="num">${_pdfFmt(vol2)} m³/h</td></tr>
     </tbody>
   </table>
 
@@ -696,11 +739,15 @@ function _buildWrgPage(meta) {
    TAB: H,X-DIAGRAMM
 ─────────────────────────────────────── */
 function _buildHxPage(meta) {
+  const hxSnap = _pdfSnapshot("hx") || {};
   // Capture existing canvas AS-IS (includes process lines already drawn)
   // Do NOT re-render — that would erase the process visualization
   const srcCanvas = document.getElementById('hxCanvas');
-  let imgSrc = null;
-  if (srcCanvas) {
+  let imgSrc = hxSnap.image || null;
+  if (!imgSrc && typeof window._hxBuildPdfSnapshot === 'function') {
+    imgSrc = window._hxBuildPdfSnapshot();
+  }
+  if (!imgSrc && srcCanvas) {
     try {
       // Scale up by drawing current canvas content into a larger offscreen canvas
       const dpr = window.devicePixelRatio || 1;
@@ -708,7 +755,8 @@ function _buildHxPage(meta) {
       const srcH = srcCanvas.height / dpr;
       // Create hi-res offscreen canvas
       const offscreen = document.createElement('canvas');
-      const scale = Math.max(2, 900 / srcW);
+      if (!srcW || !srcH) { imgSrc = null; throw new Error('canvas not ready'); }
+      const scale = Math.max(2, Math.min(4, 900 / srcW));
       offscreen.width  = Math.round(srcW * scale);
       offscreen.height = Math.round(srcH * scale);
       const octx = offscreen.getContext('2d');
@@ -806,6 +854,180 @@ function _buildHxPage(meta) {
   </p>`;
 }
 
+
+
+/* ───────────────────────────────────────
+   TAB: TRINKWASSER
+─────────────────────────────────────── */
+function _buildTrinkwasserPage(meta) {
+  const snap = _pdfSnapshot("trinkwasser");
+  const r = snap?.result || window.TW_LAST || {};
+  const esc = v => String(v ?? '–').replace(/[&<>]/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[m]));
+  const neBlocks = (r.neSummary || []).map(ne => {
+    const rows = (ne.rows || []).map(x => `<tr><td>${esc(x.label)}</td><td class="num">${x.n}</td><td class="num">${x.vr.toFixed(2)} l/s</td><td class="num">${x.sum.toFixed(2)} l/s</td></tr>`).join('');
+    const mode = ne.mode === 'top2' ? '2 größte Entnahmen' : `GL ${_twPdfNum(ne.gl)}`;
+    return `<tr><td colspan="4" class="tw-ne-title">NE ${ne.index}: ${esc(ne.title)}<br><span>${mode} · V<sub>R</sub> angesetzt ${_twPdfNum(ne.used ?? ne.peak)} l/s</span></td></tr>${rows}`;
+  }).join('');
+  const freeRows = (r.freeRows || []).map(x => `<tr><td>${esc(x.label)}</td><td class="num">${x.n}</td><td class="num">${x.vr.toFixed(2)} l/s</td><td class="num">${x.sum.toFixed(2)} l/s</td></tr>`).join('');
+  const ww = r.wwMode === 'dezentral' ? 'dezentral / DLE' : 'zentral';
+  const hints = r.wwMode === 'dezentral'
+    ? 'Dezentrale Warmwasserbereitung: DLE-Leistung, Elektroanschluss und Mindestfließdruck separat prüfen. Probeentnahmestellen und Spüleinrichtungen objektspezifisch berücksichtigen.'
+    : 'Zentrale Warmwasserbereitung: 3-Liter-Regel, Zirkulation/Begleitheizung, Probeentnahmestellen und Spüleinrichtungen objektspezifisch prüfen.';
+
+  return `
+  ${_header(meta, 'Trinkwasserberechnung')}
+
+  <style>
+    .twpdf table{table-layout:fixed;width:100%;font-size:7.2pt}
+    .twpdf th,.twpdf td{overflow-wrap:anywhere;word-break:normal;white-space:normal;line-height:1.22;padding:3px 5px}
+    .twpdf .num{white-space:normal;text-align:right}
+    .twpdf .tw-ne-title{background:#f0f4fa!important;color:#1a3a5c;font-weight:700;text-align:left;line-height:1.25}
+    .twpdf .tw-ne-title span{font-size:6.8pt;color:#4d5c70;font-weight:700}
+  </style>
+  <div class="twpdf">
+
+  <div class="sec">Basisdaten</div>
+  <table>
+    <colgroup><col style="width:24%"><col style="width:26%"><col style="width:24%"><col style="width:26%"></colgroup>
+    <tr><td>Gebäudetyp</td><td class="num">${esc(r.building || '–')}</td><td>Warmwasser</td><td class="num">${ww}</td></tr>
+    <tr><td>PWH-Volumen</td><td class="num">${r.lineVol != null ? r.lineVol + ' l' : '–'}</td><td>Zirkulation</td><td class="num">${esc(r.circ || '–')}</td></tr>
+  </table>
+
+  <div class="sec">Nutzungseinheiten</div>
+  <table>
+    <colgroup><col style="width:48%"><col style="width:14%"><col style="width:19%"><col style="width:19%"></colgroup>
+    <thead><tr><th>Entnahmestelle</th><th>Anz.</th><th>V<sub>R</sub></th><th>Summe</th></tr></thead>
+    <tbody>${neBlocks || '<tr><td colspan="4" style="text-align:center;color:#aaa">Keine Nutzungseinheiten eingetragen</td></tr>'}</tbody>
+  </table>
+
+  <div class="sec">Gebäude-Verbraucher außerhalb der NE</div>
+  <table>
+    <colgroup><col style="width:48%"><col style="width:14%"><col style="width:19%"><col style="width:19%"></colgroup>
+    <thead><tr><th>Entnahmestelle</th><th>Anz.</th><th>V<sub>R</sub></th><th>Summe</th></tr></thead>
+    <tbody>${freeRows || '<tr><td colspan="4" style="text-align:center;color:#aaa">Keine Gebäude-Verbraucher eingetragen</td></tr>'}</tbody>
+  </table>
+
+  <div class="sec">Ergebnisse</div>
+  <table>
+    <colgroup><col style="width:30%"><col style="width:20%"><col style="width:30%"><col style="width:20%"></colgroup>
+    <tbody>
+      <tr><td>ΣV<sub>R</sub> kalt</td><td class="num">${_twPdfNum(r.cold)} l/s</td><td>V<sub>R</sub> Nutzungseinheiten</td><td class="num">${_twPdfNum(r.vrNe)} l/s</td></tr>
+      <tr><td>ΣV<sub>R</sub> warm</td><td class="num">${_twPdfNum(r.warm)} l/s</td><td>V<sub>R</sub> Gebäude</td><td class="num">${_twPdfNum(r.vrBuilding)} l/s</td></tr>
+      <tr><td>V<sub>R</sub> Gesamt</td><td class="num">${_twPdfNum(r.vrTotal ?? r.total)} l/s</td><td>V<sub>S</sub> maßgebend</td><td class="num">${_twPdfNum(r.peak)} l/s<br>${_twPdfNum(r.peakM3h)} m³/h</td></tr>
+      <tr><td>Hauptleitung</td><td class="num">${esc(r.dn || '–')}</td><td>Hauswasserzähler</td><td class="num">${esc(r.meter || '–')}</td></tr>
+    </tbody>
+  </table>
+
+  <div class="sec">Hinweise</div>
+  <p style="font-size:7.2pt;color:#444;line-height:1.32;background:#f5f7fa;border:1px solid #e0e6ef;border-radius:5px;padding:6px 8px;overflow-wrap:anywhere">${esc(hints)}</p>
+  <p style="font-size:6.6pt;color:#aaa;margin-top:4px">DIN 1988-300 orientierte Schnellberechnung. Keine vollständige Rohrnetz- oder Druckverlustberechnung.</p>
+  </div>`;
+}
+
+function _twPdfNum(v) {
+  return (v == null || isNaN(v)) ? '–' : Number(v).toFixed(2).replace('.', ',');
+}
+
+
+
+/* ───────────────────────────────────────
+   TAB: MAG / DRUCKHALTUNG
+─────────────────────────────────────── */
+function _buildMagPage(meta) {
+  const val = id => document.getElementById(id)?.textContent?.trim() || '–';
+  const input = id => document.getElementById(id)?.value?.trim() || '–';
+  const selText = id => { const el = document.getElementById(id); return el?.options?.[el.selectedIndex]?.text || '–'; };
+  const hints = document.getElementById('mag-hints')?.innerText?.trim() || '–';
+  return `
+  ${_header(meta, 'MAG / Druckhaltung — Quick Check')}
+  <div class="sec">Basisdaten</div>
+  <table><tbody>
+    <tr><td>Anlagentyp</td><td class="num">${selText('mag-system')}</td></tr>
+    <tr><td>Medium</td><td class="num">${selText('mag-medium')}</td></tr>
+    <tr><td>Anlagenvolumen</td><td class="num">${_pdfFmt(input('mag-volume'))} l</td></tr>
+    <tr><td>Temperaturen</td><td class="num">${_pdfFmt(input('mag-tmin'))} / ${_pdfFmt(input('mag-tmax'))} °C</td></tr>
+    <tr><td>Statische Höhe</td><td class="num">${_pdfFmt(input('mag-height'))} m</td></tr>
+    <tr><td>Sicherheitsventil</td><td class="num">${_pdfFmt(input('mag-sv'))} bar</td></tr>
+  </tbody></table>
+  <div class="sec">Ergebnisse</div>
+  <table><tbody>
+    <tr><td>Ausdehnungsvolumen</td><td class="num">${val('mag-ve')}</td></tr>
+    <tr><td>Wasservorlage / Reserve</td><td class="num">${val('mag-reserve')}</td></tr>
+    <tr><td>Mindest-MAG Volumen</td><td class="num">${val('mag-vn-min')}</td></tr>
+    <tr><td>Empfohlene MAG-Größe</td><td class="num">${val('mag-vn-rec')}</td></tr>
+    <tr><td>Vordruck / Fülldruck</td><td class="num">${val('mag-pressures')}</td></tr>
+    <tr><td>Enddruck</td><td class="num">${val('mag-pe-out')}</td></tr>
+  </tbody></table>
+  <div class="sec">Hinweise</div>
+  <p style="font-size:8pt;color:#444;line-height:1.55;white-space:pre-line">${hints}</p>
+  <p style="font-size:7pt;color:#888;margin-top:6px">Quick-Check zur Vorauslegung. Vollständige Auslegung nach Herstellerangaben und objektspezifischen Randbedingungen prüfen.</p>`;
+}
+
+
+/* ───────────────────────────────────────
+   TAB: ENTWÄSSERUNG
+─────────────────────────────────────── */
+function _buildEntwaesserungPage(meta) {
+  const data = _pdfSnapshot("entwaesserung") || ((typeof getEntwaesserungPdfData === "function") ? getEntwaesserungPdfData() : null);
+  const r = data?.current || data || null;
+  const agg = data?.aggregate || null;
+  const esc = v => String(v ?? '–').replace(/[&<>]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+  const fmt = (v,d=2) => (v == null || isNaN(v)) ? '–' : Number(v).toFixed(d).replace('.', ',');
+
+  const fixtureRows = agg?.fixtures?.length
+    ? agg.fixtures.map(f => `<tr><td>${esc(f.label)}</td><td class="num">${f.count} Stk.</td><td class="num">${fmt(f.du,1)} DU</td></tr>`).join('')
+    : '<tr><td colspan="3" style="text-align:center;color:#aaa">Keine gespeicherten Stränge</td></tr>';
+
+  const strangRows = agg?.list?.length
+    ? agg.list.map(s => `<tr><td>${esc(s.name)}</td><td class="num">${fmt(s.duTotal,1)} DU</td><td class="num">${fmt(s.qww,2)} l/s</td></tr>`).join('')
+    : '<tr><td colspan="3" style="text-align:center;color:#aaa">Keine gespeicherten Stränge</td></tr>';
+
+  const currentRows = r?.rows?.length
+    ? r.rows.map(row => `<tr><td>${esc(row.label)}</td><td class="num">${row.count}</td><td class="num">${fmt(row.du,1)} DU</td></tr>`).join('')
+    : '<tr><td colspan="3" style="text-align:center;color:#aaa">Keine aktuelle Eingabe angesetzt</td></tr>';
+
+  const hints = r ? (typeof ewHints === 'function' ? ewHints(r) : []).map(h => `• ${esc(h)}`).join('<br>') : '–';
+
+  return `
+  ${_header(meta, 'Entwässerung — Quick Check')}
+  <div class="sec">Basisdaten</div>
+  <table><tbody>
+    <tr><td>Gebäude / Nutzung</td><td class="num">${esc(r?.useLabel)}</td></tr>
+    <tr><td>Gleichzeitigkeitsbeiwert K</td><td class="num">${fmt(r?.k,2)}</td></tr>
+    <tr><td>Sonderabfluss</td><td class="num">${fmt(r?.specialQ,2)} l/s</td></tr>
+  </tbody></table>
+
+  <div class="sec">Gesamtsumme — alle Stränge</div>
+  <table><tbody>
+    <tr><td>Anzahl Stränge</td><td class="num">${agg?.list?.length || 0}</td></tr>
+    <tr><td>ΣDU gesamt</td><td class="num">${fmt(agg?.duTotal,1)} DU</td></tr>
+    <tr><td>ΣQww gesamt</td><td class="num">${fmt(agg?.qwwTotal,2)} l/s</td></tr>
+  </tbody></table>
+
+  <div class="sec">Einrichtungsgegenstände gesamt</div>
+  <table><thead><tr><th>Verbraucher</th><th>Anzahl</th><th>DU</th></tr></thead><tbody>${fixtureRows}</tbody></table>
+
+  <div class="sec">Einzelstränge</div>
+  <table><thead><tr><th>Strang</th><th>DU</th><th>Qww</th></tr></thead><tbody>${strangRows}</tbody></table>
+
+  <div class="sec">Aktuelle Eingabe</div>
+  <table><thead><tr><th>Verbraucher</th><th>Anzahl</th><th>DU</th></tr></thead><tbody>${currentRows}</tbody></table>
+
+  <div class="sec">Ergebnisse aktuelle Eingabe</div>
+  <table><tbody>
+    <tr><td>DU gesamt</td><td class="num">${fmt(r?.duTotal,1)} DU</td></tr>
+    <tr><td>Schmutzwasserabfluss Qww</td><td class="num">${fmt(r?.qww,2)} l/s</td></tr>
+    <tr><td>Anschlussleitung</td><td class="num">${esc(r?.dims?.anschluss)}</td></tr>
+    <tr><td>Sammelleitung</td><td class="num">${esc(r?.dims?.sammel)}</td></tr>
+    <tr><td>Fallleitung</td><td class="num">${esc(r?.dims?.fall)}</td></tr>
+    <tr><td>Grundleitung</td><td class="num">${esc(r?.dims?.grund)}</td></tr>
+  </tbody></table>
+  <div class="fml">Qww = K × √ΣDU</div>
+  <div class="sec">Hinweise</div>
+  <p style="font-size:7.5pt;color:#444;line-height:1.45;background:#f5f7fa;border:1px solid #e0e6ef;border-radius:5px;padding:7px 9px;overflow-wrap:anywhere">${hints}</p>
+  <p style="font-size:6.8pt;color:#888;margin-top:5px">Quick-Check zur überschlägigen Plausibilitätsprüfung. Keine vollständige Entwässerungsplanung.</p>`;
+}
+
 /* ───────────────────────────────────────
    HILFSFUNKTIONEN
 ─────────────────────────────────────── */
@@ -818,13 +1040,13 @@ function _txt(id) {
 }
 
 /** Zahl formatieren oder '–' zurückgeben */
-function _fmt(v) {
+function _pdfFmt(v) {
   const n = parseFloat(String(v).replace(',', '.'));
   return isNaN(n) ? (v || '–') : v;
 }
 
 /** Temperaturdifferenz berechnen */
-function _fmtDiff(a, b) {
+function _pdfFmtDiff(a, b) {
   const na = parseFloat(String(a).replace(',', '.'));
   const nb = parseFloat(String(b).replace(',', '.'));
   if (isNaN(na) || isNaN(nb)) return '–';

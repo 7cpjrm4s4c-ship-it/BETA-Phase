@@ -96,7 +96,9 @@ function fromCanvas(px, py, W, H) {
 
 /* ─── GLOBALER ZUSTAND ─── */
 let _state = null;
+let _processSteps = null;
 window._hxState = null;
+window._hxProcessSteps = null;
 
 /* ─── HAUPT-DRAW ─── */
 function drawHxChart(state) {
@@ -105,6 +107,12 @@ function drawHxChart(state) {
 
   const dpr  = window.devicePixelRatio || 1;
   const rect  = canvas.getBoundingClientRect();
+
+  // Wenn Tab gerade erst eingeblendet: Größe noch 0 → retry
+  if (rect.width === 0 || rect.height === 0) {
+    setTimeout(() => drawHxChart(state), 80);
+    return;
+  }
   const W = Math.round(rect.width)  || 340;
   const H = Math.round(rect.height) || 400;
   if (W < 10 || H < 10) return;
@@ -339,15 +347,7 @@ function _drawAxes(ctx, W, H) {
     ctx.stroke();
     ctx.restore();
   });
-  // Y-Achsen-Titel
-  ctx.save();
-  ctx.translate(12, p.top + ch / 2);
-  ctx.rotate(-Math.PI / 2);
-  ctx.textAlign = 'center';
-  ctx.fillStyle = 'rgba(255,255,255,0.62)';
-  ctx.font = 'bold 11px Arial,sans-serif';
-  ctx.fillText('T  [\u00b0C]', 0, 0);
-  ctx.restore();
+  // Y-Achsen-Titel entfernt (Phase 5.3): Tick-Werte bleiben erhalten, keine doppelte Temperaturanzeige.
   ctx.restore();
 
   // X-Achse: Feuchtegehalt-Ticks
@@ -422,15 +422,20 @@ function toggleTempSign(inputId) {
   const raw = String(inp.value).replace(',', '.').trim();
   const v   = parseFloat(raw);
   if (isNaN(v) || v === 0) {
-    if (!raw.startsWith('-')) inp.value = '-';
-    inp.focus(); return;
+    if (raw.startsWith('-')) {
+      inp.value = raw.slice(1); // Remove existing minus
+    } else {
+      inp.value = '-'; // Prefix minus for next digit
+    }
+    inp.focus();
+    inp.dispatchEvent(new Event('input', { bubbles: true }));
+    return;
   }
   inp.value = String(-v).replace('.', ',');
   inp.dispatchEvent(new Event('input',  { bubbles: true }));
   inp.dispatchEvent(new Event('change', { bubbles: true }));
 }
 // Alias for WRG module — both point to same function
-const wrgToggleSign = toggleTempSign;
 
 /* ─── ZUSTAND SETZEN ─── */
 function setHxState() {
@@ -439,7 +444,7 @@ function setHxState() {
   const xIn = numHx(document.getElementById('hx-x')?.value);
   const modeRH = document.getElementById('mode-rh')?.classList.contains('active');
 
-  if (isNaN(T)) { _showHxError('Bitte Temperatur eingeben.'); return; }
+  if (isNaN(T)) { return; } // Stille Rückkehr bei unvollständiger Eingabe
   if (T < -30 || T > 60) { _showHxError('T: -30 bis +60 \u00b0C'); return; }
 
   let state;
@@ -454,6 +459,7 @@ function setHxState() {
   }
 
   _state = state; window._hxState = state;
+  _processSteps = null; window._hxProcessSteps = null;
   _renderState(state);
 }
 
@@ -666,6 +672,8 @@ function calcHxProcess() {
     default:            steps = _procHeat(s1, T2);
   }
 
+  _processSteps = steps;
+  window._hxProcessSteps = steps;
   _renderProcessSteps(steps, res);
   _drawProcessOnChart(steps);
 }
@@ -800,17 +808,25 @@ function _drawProcessOnChart(steps) {
   });
 }
 
+/* ─── PDF SNAPSHOT: Zustand + Prozesslinien zuverlässig exportieren ─── */
+window._hxBuildPdfSnapshot = function _hxBuildPdfSnapshot() {
+  const canvas = document.getElementById('hxCanvas');
+  if (!canvas) return null;
+  try {
+    if (_state) {
+      drawHxChart(_state);
+      if (_processSteps && _processSteps.length) _drawProcessOnChart(_processSteps);
+    }
+    return canvas.toDataURL('image/png');
+  } catch (e) {
+    try { return canvas.toDataURL('image/png'); } catch (_) { return null; }
+  }
+};
+
 
 /* ─── PDF EXPORT WRAPPER ─── */
 function hxOpenPdf() {
-  if (typeof openPdfSheet === 'function') {
-    openPdfSheet();
-  } else {
-    // pdf-export.js noch nicht geladen — kurz warten
-    setTimeout(() => {
-      if (typeof openPdfSheet === 'function') openPdfSheet();
-    }, 200);
-  }
+  openPdfSheet();
 }
 
 /* ─── MODUS φ ↔ x ─── */
@@ -871,12 +887,13 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('mode-rh') ?.addEventListener('click', () => _hxModeSwitch('rh'));
   document.getElementById('mode-x')  ?.addEventListener('click', () => _hxModeSwitch('x'));
   document.getElementById('hx-calc') ?.addEventListener('click', calcHxProcess);
+  document.getElementById('hx-set')  ?.addEventListener('click', setHxState);
 
   // Bug 2: Zustand automatisch setzen bei Eingabe (debounced)
   let _debTimer;
   function _autoState() {
     clearTimeout(_debTimer);
-    _debTimer = setTimeout(() => { setHxState(); _filterProcessOptions(); }, 450);
+    _debTimer = setTimeout(() => { setHxState(); _filterProcessOptions(); }, 200);
   }
 
   ['hx-temp','hx-rh','hx-x'].forEach(id => {
@@ -902,6 +919,11 @@ document.addEventListener('DOMContentLoaded', () => {
     clearTimeout(_rt);
     _rt = setTimeout(() => drawHxChart(_state), 120);
   });
+
+
+  // ± Sign-Buttons (onclick entfernt aus HTML)
+  document.getElementById('btn-hx-temp-sign')?.addEventListener('click', () => toggleTempSign('hx-temp'));
+  document.getElementById('btn-hx-target-sign')?.addEventListener('click', () => toggleTempSign('hx-target-temp'));
 
   document.querySelectorAll('.tab-btn').forEach(btn => {
     btn.addEventListener('click', () => {

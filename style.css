@@ -1,0 +1,376 @@
+/* ═══════════════════════════════════════════════════════
+   TechCalc Pro — UI Contract
+   Eine Datei · Keine Phasen · Kein !important-Dschungel
+   Aufgabe: Modul-Akzente · Tab-Sichtbarkeit · Desktop/Mobile-Layout · Print
+   Tokens  → tokens.css
+   Layout  → layout.css   (Header, Pill, Sheets)
+   Kompon. → components.css (Cards, Inputs, Buttons)
+═══════════════════════════════════════════════════════ */
+
+/* ─── App-weite Spacing- und Größen-Tokens ─── */
+:root {
+  --tcp-panel-gap:          16px;
+  --tcp-panel-gap-lg:       24px;
+  --tcp-card-pad:           18px;
+  --tcp-result-row-h:       52px;
+  --tcp-result-pad-y:        9px;
+  --tcp-result-pad-x:       16px;
+  --tcp-action-h:           32px;
+  --tcp-shell-max:         960px;
+  --tcp-header-gap-mobile:   8px;
+  --tcp-header-gap-desktop: 20px;
+  --tcp-ui-nav-h:           68px;
+  --tcp-ui-nav-w:    calc(min(96vw, 440px));
+  --tcp-edge-gap:    max(12px, env(safe-area-inset-left, 0px));
+  --tcp-warning-bg:         #ffe680;
+  --tcp-warning-text:       #9d1800;
+  --tcp-warning-border:     #ffb000;
+}
+
+/* ─── Modul-Akzentfarben ─── */
+/* Jedes Modul bekommt drei Custom Properties.
+   Inputs und Focus-Ringe nutzen --module-accent-b automatisch. */
+.tcp-module             { --module-accent: var(--blue);  --module-accent-t: var(--blue-t);  --module-accent-b: rgba(79,168,255,.35); }
+.tcp-module--heatcold   { --module-accent: var(--heat);  --module-accent-t: var(--heat-t);  --module-accent-b: rgba(255,107,53,.35); }
+.tcp-module--air        { --module-accent: var(--air);   --module-accent-t: var(--air-t);   --module-accent-b: rgba(167,139,250,.30); }
+.tcp-module--unit       { --module-accent: var(--grn);   --module-accent-t: var(--grn-t);   --module-accent-b: rgba(52,211,153,.35); }
+.tcp-module--hx         { --module-accent: #746cff;      --module-accent-t: #b7b3ff;        --module-accent-b: rgba(116,108,255,.35); }
+/* --water / --pressure / --drain teilen sich den blauen Default */
+
+/* ─── Tab-Panel-Sichtbarkeit ─── */
+.tab-panel             { display: none;   width: 100%; min-width: 0; }
+.tab-panel.is-active   { display: flex;   flex-direction: column; }
+/* flow ist strukturell einzig: desktop grid, daher keine Klasse hier */
+
+/* ─── App-Scope: Box-Sizing + Overflow ─── */
+body.tc-app                                 { min-height: 100dvh; overflow-x: hidden; }
+body.tc-app *                               { box-sizing: border-box; min-width: 0; }
+body.tc-app .gc,
+body.tc-app .out-card,
+body.tc-app .hx-card                        { padding: var(--tcp-card-pad); border-radius: var(--r-l); }
+body.tc-app .gc[style*="padding:0"]         { padding: 0; }   /* Ausnahme: explizit padding-freie Cards */
+body.tc-app .igrp,
+body.tc-app .tcp-input-group               { gap: 6px; margin-bottom: var(--tcp-panel-gap); }
+body.tc-app .inp,
+body.tc-app .inp-sm,
+body.tc-app .gl-sel,
+body.tc-app .hx-input,
+body.tc-app .tzl-inp                        { width: 100%; min-width: 0; }
+
+/* Focus-Ring folgt dem Modul-Akzent automatisch */
+body.tc-app .inp:focus,
+body.tc-app .inp-sm:focus,
+body.tc-app .gl-sel:focus,
+body.tc-app .hx-input:focus,
+body.tc-app .tzl-inp:focus                  { border-color: var(--module-accent-b, rgba(79,168,255,.35)); }
+
+/* ─── HX-Karten: angleichen an .gc ─── */
+.hx-card {
+  background:   var(--glass-mid);
+  border:       1px solid var(--gb-soft);
+  box-shadow:   inset 0 1px 0 rgba(255,255,255,.07), 0 8px 24px rgba(0,0,0,.30);
+}
+.hx-title                        { font-family: var(--f); font-size: 11px; letter-spacing: .13em; color: var(--t3); }
+.hx-mode.active, .hx-main-btn   { background: linear-gradient(135deg, var(--module-accent, #5b52ff), #5b52ff); }
+.hx-input, select.hx-input      { background: var(--glass-mid); border-color: var(--gb-strong); }
+
+/* ─── Ergebniszeilen-Vertrag ─── */
+/* result-standard .ob, .mag-result-card .ob, .ew-result-card .ob:
+   gleichmäßige Höhe, 2-col grid (Label | Wert) */
+.result-standard .ob,
+.mag-result-card  .ob,
+.ew-result-card   .ob,
+.tw-result-card   .ob {
+  min-height:             var(--tcp-result-row-h);
+  padding:                var(--tcp-result-pad-y) var(--tcp-result-pad-x);
+  border-radius:          18px;
+  display:                grid;
+  grid-template-columns:  minmax(0, 1fr) auto;
+  align-items:            center;
+  gap:                    12px;
+}
+.result-standard .ob-title,
+.mag-result-card  .ob-title,
+.ew-result-card   .ob-title,
+.tw-result-card   .ob-title {
+  margin:       0;
+  font-size:    15px;
+  line-height:  1.18;
+  font-weight:  650;
+  color:        var(--t1);
+}
+.result-standard .out-val,
+.mag-result-card  .out-val,
+.ew-result-card   .out-val,
+.tw-result-card   .out-val {
+  font-family:  var(--fm);
+  font-size:    21px;
+  line-height:  1.05;
+  font-weight:  750;
+  white-space:  nowrap;
+  color:        var(--blue);
+}
+
+/* Trinkwasser: Ergebniszeilen horizontal statt grid */
+.ob--row                   { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 16px 18px; }
+.ob--row .ob-title         { margin: 0; }
+
+/* MAG/EW: single-column out-grid */
+.mag-result-card .out-grid,
+.ew-result-card  .out-grid { grid-template-columns: 1fr; gap: 10px; }
+.mag-result-card,
+.ew-result-card             { width: 100%; }
+
+/* ─── Aktions-Buttons ─── */
+.ui-action-row   { display: flex; gap: 8px; align-items: center; justify-content: flex-end; }
+.ui-mini-btn, .ew-mini-btn {
+  min-height:     var(--tcp-action-h);
+  padding:        0 13px;
+  border-radius:  999px;
+  border:         1px solid rgba(96,165,250,.45);
+  background:     linear-gradient(180deg, rgba(96,165,250,.20), rgba(96,165,250,.09));
+  color:          var(--blue);
+  font-family:    var(--f);
+  font-size:      12px;
+  font-weight:    750;
+  cursor:         pointer;
+  transition:     transform .12s;
+}
+.ui-mini-btn.danger, .ew-mini-btn.danger {
+  border-color:  rgba(255,107,107,.45);
+  background:    linear-gradient(180deg, rgba(255,107,107,.18), rgba(255,107,107,.08));
+  color:         #ff6b6b;
+}
+.ui-mini-btn:active, .ew-mini-btn:active { transform: translateY(1px); }
+
+/* ─── Safety-Warning ─── */
+.safety-warning, .mag-safety-warning {
+  display:       block;
+  color:         var(--tcp-warning-text);
+  background:    var(--tcp-warning-bg);
+  border:        2px solid var(--tcp-warning-border);
+  border-radius: 12px;
+  padding:       10px 12px;
+  font-weight:   800;
+  line-height:   1.35;
+  margin:        6px 0;
+}
+.mag-safety-line           { list-style: none; margin-left: 0; padding-left: 0; }
+
+/* ─── Desktop-Layout ─── */
+@media (min-width: 900px) {
+
+  /* Header-Abstand */
+  body.tc-app #app-shell {
+    padding-top:    calc(var(--hdr, 118px) + var(--sat, 0px) + var(--tcp-header-gap-desktop));
+    padding-bottom: var(--tcp-panel-gap-lg);
+  }
+
+  /* Alle Modul-Tabs außer flow/pipe/unit: 2-Spalten-Grid mit tcp-col-Wrappern */
+  body.tc-app #tab-luft  .tab-inner,
+  body.tc-app #tab-hx    .tab-inner,
+  body.tc-app #tab-wrg   .tab-inner,
+  body.tc-app #tab-trinkwasser .tab-inner,
+  body.tc-app #tab-mag   .tab-inner,
+  body.tc-app #tab-entwaesserung .tab-inner {
+    max-width:              var(--tcp-shell-max);
+    margin-inline:          auto;
+    display:                grid;
+    grid-template-columns:  minmax(0, 1fr) minmax(0, 1fr);
+    gap:                    var(--tcp-panel-gap-lg);
+    align-items:            start;
+    padding-inline:         calc(var(--tcp-panel-gap-lg) + var(--sal, 0px))
+                            calc(var(--tcp-panel-gap-lg) + var(--sar, 0px));
+    padding-top:            0;
+    padding-bottom:         var(--tcp-panel-gap-lg);
+  }
+
+  /* tcp-col: Flex-Spalte für Modul-Inhalte */
+  body.tc-app .tcp-col {
+    display:        flex;
+    flex-direction: column;
+    gap:            var(--tcp-panel-gap);
+    min-width:      0;
+  }
+
+  /* Desktop-Left/Right-Wrapper: Grid-Kinder */
+  body.tc-app .luft-desktop-left,  body.tc-app .luft-desktop-right,
+  body.tc-app .hx-desktop-left,    body.tc-app .hx-desktop-right,
+  body.tc-app .wrg-desktop-left,   body.tc-app .wrg-desktop-right,
+  body.tc-app .tw-desktop-left,    body.tc-app .tw-desktop-right,
+  body.tc-app .mag-desktop-left,   body.tc-app .mag-desktop-right,
+  body.tc-app .ew-desktop-left,    body.tc-app .ew-desktop-right {
+    display:        flex;
+    flex-direction: column;
+    gap:            var(--tcp-panel-gap);
+    min-width:      0;
+    align-self:     start;
+  }
+  body.tc-app .luft-desktop-left,
+  body.tc-app .hx-desktop-left,
+  body.tc-app .wrg-desktop-left,
+  body.tc-app .tw-desktop-left,
+  body.tc-app .mag-desktop-left,
+  body.tc-app .ew-desktop-left     { grid-column: 1; }
+  body.tc-app .luft-desktop-right,
+  body.tc-app .hx-desktop-right,
+  body.tc-app .wrg-desktop-right,
+  body.tc-app .tw-desktop-right,
+  body.tc-app .mag-desktop-right,
+  body.tc-app .ew-desktop-right    { grid-column: 2; }
+
+  /* pipe + unit: zentrierte Einspalte */
+  body.tc-app #tab-pipe.is-active,
+  body.tc-app #tab-unit.is-active {
+    max-width:      900px;
+    margin-inline:  auto;
+    padding-inline: var(--tcp-panel-gap-lg);
+  }
+
+  /* flow: fixes 2-Spalten-Viewport (Eingabe scrollt links, Rohr rechts) */
+  body.tc-app #tab-flow.is-active {
+    display:                grid;
+    grid-template-columns:  minmax(0, 1fr) minmax(0, 1fr);
+    gap:                    0;
+    min-height:             calc(100dvh - var(--hdr, 118px) - var(--sat, 0px) - var(--tcp-header-gap-desktop));
+    max-height:             calc(100dvh - var(--hdr, 118px) - var(--sat, 0px) - var(--tcp-header-gap-desktop));
+    overflow:               hidden;
+  }
+  body.tc-app #tab-flow .col-L,
+  body.tc-app #tab-flow .col-R {
+    display:        flex;
+    flex-direction: column;
+    gap:            var(--tcp-panel-gap);
+    overflow-y:     auto;
+    padding:        var(--tcp-panel-gap-lg);
+    min-width:      0;
+  }
+  body.tc-app #tab-flow .col-L { border-right: 1px solid var(--gb-soft); }
+  body.tc-app #tab-flow .col-R { background: rgba(255,255,255,.014); }
+
+  /* flow: auf Desktop Heizung + Kälte nebeneinander, Umschalter versteckt */
+  body.tc-app #tab-flow .hk-switch-group { display: none; }
+  body.tc-app #tab-flow #flow-panel-h,
+  body.tc-app #tab-flow #flow-panel-k    { display: block; }
+  body.tc-app #tab-flow .twin            { grid-template-columns: minmax(0,1fr) minmax(0,1fr); }
+
+  /* MAG Desktop: fml links-bündig in Card */
+  body.tc-app #tab-mag .fml,
+  body.tc-app #tab-entwaesserung .fml {
+    text-align:   left;
+    padding:      10px 12px;
+    border:       1px solid var(--gb-soft);
+    border-radius: var(--r-m);
+    background:   rgba(255,255,255,.035);
+    margin:       0;
+  }
+}
+
+/* ─── Breit-Desktop ≥1200px ─── */
+@media (min-width: 1200px) {
+  body.tc-app #app-shell {
+    padding-top: calc(var(--hdr, 118px) + var(--sat, 0px) + 32px);
+  }
+
+  body.tc-app #tab-luft  .tab-inner,
+  body.tc-app #tab-hx    .tab-inner,
+  body.tc-app #tab-wrg   .tab-inner,
+  body.tc-app #tab-trinkwasser .tab-inner,
+  body.tc-app #tab-mag   .tab-inner,
+  body.tc-app #tab-entwaesserung .tab-inner {
+    max-width:     1500px;
+    column-gap:    28px;
+  }
+
+  body.tc-app #tab-flow {
+    max-width:              1680px;
+    margin-inline:          auto;
+    grid-template-columns:  minmax(420px, .95fr) minmax(520px, 1.05fr);
+    align-items:            start;
+    column-gap:             22px;
+    min-height:             auto;
+    max-height:             none;
+    overflow:               visible;
+  }
+  body.tc-app #tab-flow .col-L,
+  body.tc-app #tab-flow .col-R {
+    overflow:    visible;
+    padding:     0;
+    border-right: 0;
+    background:  transparent;
+  }
+  body.tc-app #tab-flow .col-R {
+    position:   sticky;
+    top:        calc(var(--hdr, 118px) + var(--sat, 0px) + 32px);
+    max-height: calc(100dvh - var(--hdr, 118px) - var(--sat, 0px) - 48px);
+    overflow-y: auto;
+  }
+  body.tc-app #tab-flow .twin {
+    grid-template-columns: minmax(0,1fr) minmax(0,1fr);
+  }
+}
+
+/* ─── Mobile Layout ─── */
+@media (max-width: 899px) {
+
+  body.tc-app #app-shell {
+    padding-top:    calc(var(--hdr, 118px) + var(--sat, 0px) + var(--tcp-header-gap-mobile));
+    padding-bottom: calc(var(--tcp-ui-nav-h) + 56px + env(safe-area-inset-bottom, 0px));
+  }
+
+  /* Tab-Panel und Tab-Inner: Stack */
+  body.tc-app .tab-inner,
+  body.tc-app .tab-panel.is-active {
+    display:        flex;
+    flex-direction: column;
+    align-items:    stretch;
+    gap:            var(--tcp-panel-gap);
+    padding-inline: calc(12px + var(--sal, 0px)) calc(12px + var(--sar, 0px));
+    padding-top:    0;
+    padding-bottom: calc(var(--tcp-ui-nav-h) + 52px + env(safe-area-inset-bottom, 0px));
+  }
+
+  /* Desktop-Wrapper transparent auf Mobile */
+  body.tc-app .tcp-col,
+  body.tc-app .luft-desktop-left,  body.tc-app .luft-desktop-right,
+  body.tc-app .hx-desktop-left,    body.tc-app .hx-desktop-right,
+  body.tc-app .wrg-desktop-left,   body.tc-app .wrg-desktop-right,
+  body.tc-app .tw-desktop-left,    body.tc-app .tw-desktop-right,
+  body.tc-app .mag-desktop-left,   body.tc-app .mag-desktop-right,
+  body.tc-app .ew-desktop-left,    body.tc-app .ew-desktop-right { display: contents; }
+
+  /* Bottom Pill: zentriert und fixiert */
+  body.tc-app .bottom-pill {
+    position:   fixed;
+    left:       50%;
+    bottom:     calc(12px + env(safe-area-inset-bottom, 0px));
+    right:      auto;
+    transform:  translateX(-50%);
+    width:      var(--tcp-ui-nav-w);
+    max-width:  calc(100vw - 24px);
+    z-index:    3000;
+    margin:     0;
+  }
+
+  /* Ergebniswerte auf Mobile etwas kleiner */
+  .result-standard .out-val,
+  .mag-result-card  .out-val,
+  .ew-result-card   .out-val,
+  .tw-result-card   .out-val { font-size: 19px; }
+}
+
+/* ─── Print / PDF ─── */
+@media print {
+  body.tc-app .bottom-pill,
+  body.tc-app .hdr,
+  body.tc-app .app-menu-sheet,
+  body.tc-app .app-menu-overlay,
+  body.tc-app .plus-sheet,
+  body.tc-app .plus-overlay,
+  body.tc-app .project-sheet,
+  body.tc-app .project-overlay,
+  body.tc-app .pill-indicator    { display: none; }
+  body.tc-app #app-shell         { padding: 0; }
+  body.tc-app .tab-panel         { display: none; }
+  body.tc-app .tab-panel.is-active { display: block; }
+}
