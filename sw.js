@@ -5,17 +5,18 @@
 'use strict';
 
 const BUILD_TS   = '20260430-clean';
-const CACHE_NAME = `beta-phase-${BUILD_TS}`;
+const CACHE_NAME = `techcalc-${BUILD_TS}`;
 
+const BASE = '/BETA-Phase/';
 const PRECACHE = [
-  './', './index.html',
-  './tokens.css', './layout.css', './components.css', './style.css',
-  './app.js', './pipe.js', './units.js',
-  './heating-cooling.js', './ventilation.js',
-  './wrg-mischluft.js', './trinkwasser.js',
-  './mag.js', './entwaesserung.js',
-  './pdf-export.js', './hx-engine.js',
-  './manifest.json', './favicon.ico', './apple-touch-icon.png',
+  BASE, BASE + 'index.html',
+  BASE + 'tokens.css', BASE + 'layout.css', BASE + 'components.css', BASE + 'style.css',
+  BASE + 'app.js', BASE + 'pipe.js', BASE + 'units.js',
+  BASE + 'heating-cooling.js', BASE + 'ventilation.js',
+  BASE + 'wrg-mischluft.js', BASE + 'trinkwasser.js',
+  BASE + 'mag.js', BASE + 'entwaesserung.js',
+  BASE + 'pdf-export.js', BASE + 'hx-engine.js',
+  BASE + 'manifest.json', BASE + 'favicon.ico', BASE + 'apple-touch-icon.png',
 ];
 
 const BYPASS = ['workers.dev', 'analytics', 'cloudflare'];
@@ -57,7 +58,7 @@ self.addEventListener('fetch', event => {
     if (cached) { network.catch(() => null); return cached; }
     const fresh = await network;
     if (fresh) return fresh;
-    if (request.mode === 'navigate') return cache.match('./index.html');
+    if (request.mode === 'navigate') return cache.match(BASE + 'index.html');
     return new Response('', { status: 408, statusText: 'Offline cache miss' });
   })());
 });

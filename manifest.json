@@ -1,18 +1,29 @@
 {
-  "name": "BETA-Phase",
+  "name": "TechCalc Pro",
   "short_name": "TechCalc",
   "description": "HLK-Rechner für Heizung, Lüftung und Klimatisierung",
   "display": "standalone",
   "orientation": "portrait-primary",
-  "start_url": "/",
-  "scope": "/",
+  "start_url": "/BETA-Phase/",
+  "scope": "/BETA-Phase/",
   "background_color": "#000000",
   "theme_color": "#000000",
   "icons": [
-    { "src": "apple-touch-icon.png", "sizes": "180x180", "type": "image/png", "purpose": "any maskable" }
+    {
+      "src": "apple-touch-icon.png",
+      "sizes": "180x180",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
   ],
-  "categories": ["utilities", "productivity"],
-  "display_override": ["window-controls-overlay", "standalone", "minimal-ui"],
-  "id": "/"
+  "categories": [
+    "utilities",
+    "productivity"
+  ],
+  "display_override": [
+    "window-controls-overlay",
+    "standalone",
+    "minimal-ui"
+  ],
+  "id": "/BETA-Phase/"
 }
-ü

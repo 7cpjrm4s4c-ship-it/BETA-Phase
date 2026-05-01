@@ -772,3 +772,28 @@ document.addEventListener('DOMContentLoaded', () => {
    HINWEIS: Einheitenrechner-Logik ist in units.js
    HINWEIS: Rohrdimensionierung-Logik ist in pipe.js
 ─────────────────────────────────────── */
+
+/* ─── SERVICE WORKER REGISTRATION ─── */
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/BETA-Phase/sw.js')
+      .then(reg => {
+        reg.update();
+        if (reg.waiting) reg.waiting.postMessage('SKIP_WAITING');
+        reg.addEventListener('updatefound', () => {
+          const nw = reg.installing;
+          nw.addEventListener('statechange', () => {
+            if (nw.state === 'installed' && navigator.serviceWorker.controller) {
+              nw.postMessage('SKIP_WAITING');
+            }
+          });
+        });
+      })
+      .catch(() => {});
+
+    let refreshing = false;
+    navigator.serviceWorker.addEventListener('controllerchange', () => {
+      if (!refreshing) { refreshing = true; window.location.reload(); }
+    });
+  });
+}
