@@ -8,7 +8,7 @@ const BUILD_TS = '20260502-design-system-v3';
 const CACHE_NAME = `techcalc-${BUILD_TS}`;
 
 const PRECACHE = [
-  './', './index.html',
+  'BETA-Phase/', './index.html',
   './tokens.css', './layout.css', './styles.css', './app.css',
   './app.js', './heating-cooling.js', './hx-engine.js', './pdf-export.js',
   './trinkwasser.js',

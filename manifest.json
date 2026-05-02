@@ -4,8 +4,8 @@
   "description": "HLK-Rechner für Heizung, Lüftung und Klimatisierung",
   "display": "standalone",
   "orientation": "portrait-primary",
-  "start_url": "./",
-  "scope": "./",
+  "start_url": "BETA-Phase/",
+  "scope": "BETA-Phase/",
   "background_color": "#000000",
   "theme_color": "#ff6b35",
   "icons": [
