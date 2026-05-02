@@ -236,6 +236,7 @@ input[type=number]::-webkit-outer-spin-button { -webkit-appearance:none; }
 .app-menu-overlay.open { display:block; }
 
 .app-menu-sheet {
+  display:none;  ← FIX: Standardmäßig versteckt!
   position:fixed;
   top:0;
   right:0;
@@ -243,7 +244,6 @@ input[type=number]::-webkit-outer-spin-button { -webkit-appearance:none; }
   z-index:820;
   width:100%;
   max-width:360px;
-  display:flex;
   flex-direction:column;
   transform:translateX(100%);
   transition:transform 0.28s ease-out;
@@ -252,6 +252,7 @@ input[type=number]::-webkit-outer-spin-button { -webkit-appearance:none; }
 }
 
 .app-menu-sheet.open {
+  display:flex;  ← Nur sichtbar wenn open!
   transform:translateX(0);
 }
 
@@ -262,9 +263,67 @@ input[type=number]::-webkit-outer-spin-button { -webkit-appearance:none; }
   gap:14px;
 }
 
-/* ═══════════════════════════════════════════════════════════════════════════════
+/* ─── NAV CONFIG MODAL ─── */
+.nav-config-overlay {
+  display:none;
+  position:fixed;
+  inset:0;
+  z-index:760;
+  backdrop-filter:blur(5px);
+  -webkit-backdrop-filter:blur(5px);
+}
+
+.nav-config-overlay.open { display:block; }
+
+.nav-config-sheet {
+  display:none;
+  position:fixed;
+  top:0;
+  right:0;
+  bottom:0;
+  z-index:820;
+  width:100%;
+  max-width:360px;
+  flex-direction:column;
+  transform:translateX(100%);
+  transition:transform 0.28s ease-out;
+  overflow-y:auto;
+}
+
+.nav-config-sheet.open { display:flex; transform:translateX(0); }
+
+/* ─── PROJECT MODAL ─── */
+.project-overlay {
+  display:none;
+  position:fixed;
+  inset:0;
+  z-index:760;
+  backdrop-filter:blur(5px);
+  -webkit-backdrop-filter:blur(5px);
+}
+
+.project-overlay.open { display:block; }
+
+.project-sheet {
+  display:none;
+  position:fixed;
+  top:0;
+  right:0;
+  bottom:0;
+  z-index:820;
+  width:100%;
+  max-width:360px;
+  flex-direction:column;
+  transform:translateX(100%);
+  transition:transform 0.28s ease-out;
+  overflow-y:auto;
+}
+
+.project-sheet.open { display:flex; transform:translateX(0); }
+
+/* ═════════════════════════════════════════════════════════════════════════════════
    BOTTOM PILL — Fixed Action Bar
-═══════════════════════════════════════════════════════════════════════════════ */
+═════════════════════════════════════════════════════════════════════════════════ */
 
 .bottom-pill {
   position:fixed;
