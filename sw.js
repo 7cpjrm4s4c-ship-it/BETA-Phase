@@ -1,22 +1,32 @@
-/* ═══════════════════════════════════════════════════════
-   sw.js — TechCalc Pro Service Worker
+/* ═══════════════════════════════════════════════════════════════════════════════
+   SW.JS — Service Worker
    Deployment: bash deploy.sh ersetzt BUILD_TS automatisch
-═══════════════════════════════════════════════════════ */
+═══════════════════════════════════════════════════════════════════════════════ */
 'use strict';
 
-const BUILD_TS   = '20260430-clean';
+const BUILD_TS = '20260502-clean-arch';
 const CACHE_NAME = `techcalc-${BUILD_TS}`;
-
 const BASE = '/BETA-Phase/';
+
 const PRECACHE = [
-  BASE, BASE + 'index.html',
-  BASE + 'tokens.css', BASE + 'layout.css', BASE + 'components.css', BASE + 'style.css',
-  BASE + 'app.js', BASE + 'pipe.js', BASE + 'units.js',
-  BASE + 'heating-cooling.js', BASE + 'ventilation.js',
-  BASE + 'wrg-mischluft.js', BASE + 'trinkwasser.js',
-  BASE + 'mag.js', BASE + 'entwaesserung.js',
-  BASE + 'pdf-export.js', BASE + 'hx-engine.js',
-  BASE + 'manifest.json', BASE + 'favicon.ico', BASE + 'apple-touch-icon.png',
+  BASE,
+  BASE + 'index.html',
+  BASE + 'tokens.css',
+  BASE + 'layout.css',
+  BASE + 'style.css',
+  BASE + 'app.css',
+  BASE + 'app.js',
+  BASE + 'pipe.js',
+  BASE + 'units.js',
+  BASE + 'heating-cooling.js',
+  BASE + 'ventilation.js',
+  BASE + 'wrg-mischluft.js',
+  BASE + 'trinkwasser.js',
+  BASE + 'mag.js',
+  BASE + 'entwaesserung.js',
+  BASE + 'hx-engine.js',
+  BASE + 'pdf-export.js',
+  BASE + 'manifest.json',
 ];
 
 const BYPASS = ['workers.dev', 'analytics', 'cloudflare'];
@@ -46,7 +56,7 @@ self.addEventListener('fetch', event => {
   if (BYPASS.some(b => url.hostname.includes(b))) return;
 
   event.respondWith((async () => {
-    const cache  = await caches.open(CACHE_NAME);
+    const cache = await caches.open(CACHE_NAME);
     const cached = await cache.match(request);
     const network = fetch(request).then(response => {
       if (response && response.status === 200 && response.type !== 'opaque') {
@@ -55,7 +65,11 @@ self.addEventListener('fetch', event => {
       return response;
     }).catch(() => null);
 
-    if (cached) { network.catch(() => null); return cached; }
+    if (cached) {
+      network.catch(() => null);
+      return cached;
+    }
+
     const fresh = await network;
     if (fresh) return fresh;
     if (request.mode === 'navigate') return cache.match(BASE + 'index.html');

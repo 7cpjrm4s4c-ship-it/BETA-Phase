@@ -1,514 +1,516 @@
-/* ═══════════════════════════════════════════════════════
-   TechCalc Pro — UI Contract
-   Eine Datei · Keine Phasen · Kein !important-Dschungel
-   Aufgabe: Modul-Akzente · Tab-Sichtbarkeit · Desktop/Mobile-Layout · Print
-   Tokens  → tokens.css
-   Layout  → layout.css   (Header, Pill, Sheets)
-   Kompon. → components.css (Cards, Inputs, Buttons)
-═══════════════════════════════════════════════════════ */
+/* ═══════════════════════════════════════════════════════════════════════════════
+   STYLE.CSS — Globale UI/UX Sprache
+   Alle visuellen Regeln für Komponenten
+   Einzige Quelle für App-Styling — Module greifen NUR hier zu
+═══════════════════════════════════════════════════════════════════════════════ */
 
-/* ─── App-weite Spacing- und Größen-Tokens ─── */
-:root {
-  --tcp-panel-gap:          16px;
-  --tcp-panel-gap-lg:       24px;
-  --tcp-card-pad:           18px;
-  --tcp-result-row-h:       52px;
-  --tcp-result-pad-y:        9px;
-  --tcp-result-pad-x:       16px;
-  --tcp-action-h:           32px;
-  --tcp-shell-max:         960px;
-  --tcp-header-gap-mobile:   8px;
-  --tcp-header-gap-desktop: 20px;
-  --tcp-ui-nav-h:           68px;
-  --tcp-ui-nav-w:    calc(min(96vw, 440px));
-  --tcp-edge-gap:    max(12px, env(safe-area-inset-left, 0px));
-  --tcp-warning-bg:         #ffe680;
-  --tcp-warning-text:       #9d1800;
-  --tcp-warning-border:     #ffb000;
+/* ═══════════════════════════════════════════════════════════════════════════════
+   BASE ELEMENTS — HTML-Tags
+═══════════════════════════════════════════════════════════════════════════════ */
+
+body {
+  background:var(--bg);
+  color:var(--t1);
+  background-image:
+    radial-gradient(ellipse 45% 35% at 85% 90%,
+      rgba(10,35,65,.22) 0%, transparent 70%);
 }
 
-/* ─── Modul-Akzentfarben ─── */
-/* Jedes Modul bekommt drei Custom Properties.
-   Inputs und Focus-Ringe nutzen --module-accent-b automatisch. */
-.tcp-module             { --module-accent: var(--blue);  --module-accent-t: var(--blue-t);  --module-accent-b: rgba(79,168,255,.35); }
-.tcp-module--heatcold   { --module-accent: var(--heat);  --module-accent-t: var(--heat-t);  --module-accent-b: rgba(255,107,53,.35); }
-.tcp-module--air        { --module-accent: var(--air);   --module-accent-t: var(--air-t);   --module-accent-b: rgba(167,139,250,.30); }
-.tcp-module--unit       { --module-accent: var(--grn);   --module-accent-t: var(--grn-t);   --module-accent-b: rgba(52,211,153,.35); }
-.tcp-module--hx         { --module-accent: #746cff;      --module-accent-t: #b7b3ff;        --module-accent-b: rgba(116,108,255,.35); }
-/* --water / --pressure / --drain teilen sich den blauen Default */
+::-webkit-scrollbar-thumb { background:var(--gb-soft); border-radius:2px; }
 
-/* ─── Tab-Panel-Sichtbarkeit ─── */
-.tab-panel             { display: none;   width: 100%; min-width: 0; }
-.tab-panel.is-active   { display: flex;   flex-direction: column; }
-/* flow ist strukturell einzig: desktop grid, daher keine Klasse hier */
+/* ═══════════════════════════════════════════════════════════════════════════════
+   HEADER STYLING
+═══════════════════════════════════════════════════════════════════════════════ */
 
-/* ─── App-Scope: Box-Sizing + Overflow ─── */
-body.tc-app                                 { min-height: 100dvh; overflow-x: hidden; }
-body.tc-app *                               { box-sizing: border-box; min-width: 0; }
-body.tc-app .gc,
-body.tc-app .out-card,
-body.tc-app .hx-card                        { padding: var(--tcp-card-pad); border-radius: var(--r-l); }
-body.tc-app .gc[style*="padding:0"]         { padding: 0; }   /* Ausnahme: explizit padding-freie Cards */
-body.tc-app .igrp,
-body.tc-app .tcp-input-group               { gap: 6px; margin-bottom: var(--tcp-panel-gap); }
-body.tc-app .inp,
-body.tc-app .inp-sm,
-body.tc-app .gl-sel,
-body.tc-app .hx-input,
-body.tc-app .tzl-inp                        { width: 100%; min-width: 0; }
-
-/* Focus-Ring folgt dem Modul-Akzent automatisch */
-body.tc-app .inp:focus,
-body.tc-app .inp-sm:focus,
-body.tc-app .gl-sel:focus,
-body.tc-app .hx-input:focus,
-body.tc-app .tzl-inp:focus                  { border-color: var(--module-accent-b, rgba(79,168,255,.35)); }
-
-/* ─── HX-Karten: angleichen an .gc ─── */
-.hx-card {
-  background:   var(--glass-mid);
-  border:       1px solid var(--gb-soft);
-  box-shadow:   inset 0 1px 0 rgba(255,255,255,.07), 0 8px 24px rgba(0,0,0,.30);
-}
-.hx-title                        { font-family: var(--f); font-size: 11px; letter-spacing: .13em; color: var(--t3); }
-.hx-mode.active, .hx-main-btn   { background: linear-gradient(135deg, var(--module-accent, #5b52ff), #5b52ff); }
-.hx-input, select.hx-input      { background: var(--glass-mid); border-color: var(--gb-strong); }
-
-/* ─── Ergebniszeilen-Vertrag ─── */
-/* result-standard .ob, .mag-result-card .ob, .ew-result-card .ob:
-   gleichmäßige Höhe, 2-col grid (Label | Wert) */
-.result-standard .ob,
-.mag-result-card  .ob,
-.ew-result-card   .ob,
-.tw-result-card   .ob {
-  min-height:             var(--tcp-result-row-h);
-  padding:                var(--tcp-result-pad-y) var(--tcp-result-pad-x);
-  border-radius:          18px;
-  display:                grid;
-  grid-template-columns:  minmax(0, 1fr) auto;
-  align-items:            center;
-  gap:                    12px;
-}
-.result-standard .ob-title,
-.mag-result-card  .ob-title,
-.ew-result-card   .ob-title,
-.tw-result-card   .ob-title {
-  margin:       0;
-  font-size:    15px;
-  line-height:  1.18;
-  font-weight:  650;
-  color:        var(--t1);
-}
-.result-standard .out-val,
-.mag-result-card  .out-val,
-.ew-result-card   .out-val,
-.tw-result-card   .out-val {
-  font-family:  var(--fm);
-  font-size:    21px;
-  line-height:  1.05;
-  font-weight:  750;
-  white-space:  nowrap;
-  color:        var(--blue);
+.hdr {
+  background:rgba(0,0,0,0.82);
+  backdrop-filter:saturate(180%) blur(28px);
+  -webkit-backdrop-filter:saturate(180%) blur(28px);
+  border-bottom:1px solid var(--gb-soft);
 }
 
-/* Trinkwasser: Ergebniszeilen horizontal statt grid */
-.ob--row                   { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 16px 18px; }
-.ob--row .ob-title         { margin: 0; }
-
-/* MAG/EW: single-column out-grid */
-.mag-result-card .out-grid,
-.ew-result-card  .out-grid { grid-template-columns: 1fr; gap: 10px; }
-.mag-result-card,
-.ew-result-card             { width: 100%; }
-
-/* ─── Aktions-Buttons ─── */
-.ui-action-row   { display: flex; gap: 8px; align-items: center; justify-content: flex-end; }
-.ui-mini-btn, .ew-mini-btn {
-  min-height:     var(--tcp-action-h);
-  padding:        0 13px;
-  border-radius:  999px;
-  border:         1px solid rgba(96,165,250,.45);
-  background:     linear-gradient(180deg, rgba(96,165,250,.20), rgba(96,165,250,.09));
-  color:          var(--blue);
-  font-family:    var(--f);
-  font-size:      12px;
-  font-weight:    750;
-  cursor:         pointer;
-  transition:     transform .12s;
-}
-.ui-mini-btn.danger, .ew-mini-btn.danger {
-  border-color:  rgba(255,107,107,.45);
-  background:    linear-gradient(180deg, rgba(255,107,107,.18), rgba(255,107,107,.08));
-  color:         #ff6b6b;
-}
-.ui-mini-btn:active, .ew-mini-btn:active { transform: translateY(1px); }
-
-/* ─── Safety-Warning ─── */
-.safety-warning, .mag-safety-warning {
-  display:       block;
-  color:         var(--tcp-warning-text);
-  background:    var(--tcp-warning-bg);
-  border:        2px solid var(--tcp-warning-border);
-  border-radius: 12px;
-  padding:       10px 12px;
-  font-weight:   800;
-  line-height:   1.35;
-  margin:        6px 0;
-}
-.mag-safety-line           { list-style: none; margin-left: 0; padding-left: 0; }
-
-/* ─── Desktop-Layout ─── */
-@media (min-width: 900px) {
-
-  /* Header-Abstand */
-  body.tc-app #app-shell {
-    padding-top:    calc(var(--hdr, 118px) + var(--sat, 0px) + var(--tcp-header-gap-desktop));
-    padding-bottom: var(--tcp-panel-gap-lg);
-  }
-
-  /* Alle Modul-Tabs außer flow/pipe/unit: 2-Spalten-Grid mit tcp-col-Wrappern */
-  body.tc-app #tab-luft  .tab-inner,
-  body.tc-app #tab-hx    .tab-inner,
-  body.tc-app #tab-wrg   .tab-inner,
-  body.tc-app #tab-trinkwasser .tab-inner,
-  body.tc-app #tab-mag   .tab-inner,
-  body.tc-app #tab-entwaesserung .tab-inner {
-    max-width:              var(--tcp-shell-max);
-    margin-inline:          auto;
-    display:                grid;
-    grid-template-columns:  minmax(0, 1fr) minmax(0, 1fr);
-    gap:                    var(--tcp-panel-gap-lg);
-    align-items:            start;
-    padding-inline:         calc(var(--tcp-panel-gap-lg) + var(--sal, 0px))
-                            calc(var(--tcp-panel-gap-lg) + var(--sar, 0px));
-    padding-top:            0;
-    padding-bottom:         var(--tcp-panel-gap-lg);
-  }
-
-  /* tcp-col: Flex-Spalte für Modul-Inhalte */
-  body.tc-app .tcp-col {
-    display:        flex;
-    flex-direction: column;
-    gap:            var(--tcp-panel-gap);
-    min-width:      0;
-  }
-
-  /* Desktop-Left/Right-Wrapper: Grid-Kinder */
-  body.tc-app .luft-desktop-left,  body.tc-app .luft-desktop-right,
-  body.tc-app .hx-desktop-left,    body.tc-app .hx-desktop-right,
-  body.tc-app .wrg-desktop-left,   body.tc-app .wrg-desktop-right,
-  body.tc-app .tw-desktop-left,    body.tc-app .tw-desktop-right,
-  body.tc-app .mag-desktop-left,   body.tc-app .mag-desktop-right,
-  body.tc-app .ew-desktop-left,    body.tc-app .ew-desktop-right {
-    display:        flex;
-    flex-direction: column;
-    gap:            var(--tcp-panel-gap);
-    min-width:      0;
-    align-self:     start;
-  }
-  body.tc-app .luft-desktop-left,
-  body.tc-app .hx-desktop-left,
-  body.tc-app .wrg-desktop-left,
-  body.tc-app .tw-desktop-left,
-  body.tc-app .mag-desktop-left,
-  body.tc-app .ew-desktop-left     { grid-column: 1; }
-  body.tc-app .luft-desktop-right,
-  body.tc-app .hx-desktop-right,
-  body.tc-app .wrg-desktop-right,
-  body.tc-app .tw-desktop-right,
-  body.tc-app .mag-desktop-right,
-  body.tc-app .ew-desktop-right    { grid-column: 2; }
-
-  /* pipe + unit: zentrierte Einspalte */
-  body.tc-app #tab-pipe.is-active,
-  body.tc-app #tab-unit.is-active {
-    max-width:      900px;
-    margin-inline:  auto;
-    padding-inline: var(--tcp-panel-gap-lg);
-  }
-
-  /* flow: fixes 2-Spalten-Viewport (Eingabe scrollt links, Rohr rechts) */
-  body.tc-app #tab-flow.is-active {
-    display:                grid;
-    grid-template-columns:  minmax(0, 1fr) minmax(0, 1fr);
-    gap:                    0;
-    min-height:             calc(100dvh - var(--hdr, 118px) - var(--sat, 0px) - var(--tcp-header-gap-desktop));
-    max-height:             calc(100dvh - var(--hdr, 118px) - var(--sat, 0px) - var(--tcp-header-gap-desktop));
-    overflow:               hidden;
-  }
-  body.tc-app #tab-flow .col-L,
-  body.tc-app #tab-flow .col-R {
-    display:        flex;
-    flex-direction: column;
-    gap:            var(--tcp-panel-gap);
-    overflow-y:     auto;
-    padding:        var(--tcp-panel-gap-lg);
-    min-width:      0;
-  }
-  body.tc-app #tab-flow .col-L { border-right: 1px solid var(--gb-soft); }
-  body.tc-app #tab-flow .col-R { background: rgba(255,255,255,.014); }
-
-  /* flow: auf Desktop Heizung + Kälte nebeneinander, Umschalter versteckt */
-  body.tc-app #tab-flow .hk-switch-group { display: none; }
-  body.tc-app #tab-flow #flow-panel-h,
-  body.tc-app #tab-flow #flow-panel-k    { display: block; }
-  body.tc-app #tab-flow .twin            { grid-template-columns: minmax(0,1fr) minmax(0,1fr); }
-
-  /* MAG Desktop: fml links-bündig in Card */
-  body.tc-app #tab-mag .fml,
-  body.tc-app #tab-entwaesserung .fml {
-    text-align:   left;
-    padding:      10px 12px;
-    border:       1px solid var(--gb-soft);
-    border-radius: var(--r-m);
-    background:   rgba(255,255,255,.035);
-    margin:       0;
-  }
+.hdr-icon {
+  background:var(--glass-mid);
+  border:1px solid var(--gb-mid);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,0.15);
 }
 
-/* ─── Breit-Desktop ≥1200px ─── */
-@media (min-width: 1200px) {
-  body.tc-app #app-shell {
-    padding-top: calc(var(--hdr, 118px) + var(--sat, 0px) + 32px);
-  }
-
-  body.tc-app #tab-luft  .tab-inner,
-  body.tc-app #tab-hx    .tab-inner,
-  body.tc-app #tab-wrg   .tab-inner,
-  body.tc-app #tab-trinkwasser .tab-inner,
-  body.tc-app #tab-mag   .tab-inner,
-  body.tc-app #tab-entwaesserung .tab-inner {
-    max-width:     1500px;
-    column-gap:    28px;
-  }
-
-  body.tc-app #tab-flow {
-    max-width:              1680px;
-    margin-inline:          auto;
-    grid-template-columns:  minmax(420px, .95fr) minmax(520px, 1.05fr);
-    align-items:            start;
-    column-gap:             22px;
-    min-height:             auto;
-    max-height:             none;
-    overflow:               visible;
-  }
-  body.tc-app #tab-flow .col-L,
-  body.tc-app #tab-flow .col-R {
-    overflow:    visible;
-    padding:     0;
-    border-right: 0;
-    background:  transparent;
-  }
-  body.tc-app #tab-flow .col-R {
-    position:   sticky;
-    top:        calc(var(--hdr, 118px) + var(--sat, 0px) + 32px);
-    max-height: calc(100dvh - var(--hdr, 118px) - var(--sat, 0px) - 48px);
-    overflow-y: auto;
-  }
-  body.tc-app #tab-flow .twin {
-    grid-template-columns: minmax(0,1fr) minmax(0,1fr);
-  }
+.hdr-title {
+  font-size:15px;
+  font-weight:700;
+  letter-spacing:-0.25px;
 }
 
-/* ─── Mobile Layout ─── */
-@media (max-width: 899px) {
-
-  body.tc-app #app-shell {
-    padding-top:    calc(var(--hdr, 118px) + var(--sat, 0px) + var(--tcp-header-gap-mobile));
-    padding-bottom: calc(var(--tcp-ui-nav-h) + 56px + env(safe-area-inset-bottom, 0px));
-  }
-
-  /* Tab-Panel und Tab-Inner: Stack */
-  body.tc-app .tab-inner,
-  body.tc-app .tab-panel.is-active {
-    display:        flex;
-    flex-direction: column;
-    align-items:    stretch;
-    gap:            var(--tcp-panel-gap);
-    padding-inline: calc(12px + var(--sal, 0px)) calc(12px + var(--sar, 0px));
-    padding-top:    0;
-    padding-bottom: calc(var(--tcp-ui-nav-h) + 52px + env(safe-area-inset-bottom, 0px));
-  }
-
-  /* Desktop-Wrapper transparent auf Mobile */
-  body.tc-app .tcp-col,
-  body.tc-app .luft-desktop-left,  body.tc-app .luft-desktop-right,
-  body.tc-app .hx-desktop-left,    body.tc-app .hx-desktop-right,
-  body.tc-app .wrg-desktop-left,   body.tc-app .wrg-desktop-right,
-  body.tc-app .tw-desktop-left,    body.tc-app .tw-desktop-right,
-  body.tc-app .mag-desktop-left,   body.tc-app .mag-desktop-right,
-  body.tc-app .ew-desktop-left,    body.tc-app .ew-desktop-right { display: contents; }
-
-  /* Bottom Pill: zentriert und fixiert */
-  body.tc-app .bottom-pill {
-    position:   fixed;
-    left:       50%;
-    bottom:     calc(12px + env(safe-area-inset-bottom, 0px));
-    right:      auto;
-    transform:  translateX(-50%);
-    width:      var(--tcp-ui-nav-w);
-    max-width:  calc(100vw - 24px);
-    z-index:    3000;
-    margin:     0;
-  }
-
-  /* Ergebniswerte auf Mobile etwas kleiner */
-  .result-standard .out-val,
-  .mag-result-card  .out-val,
-  .ew-result-card   .out-val,
-  .tw-result-card   .out-val { font-size: 19px; }
+.hdr-title-pro {
+  color:var(--blue);
+  font-weight:800;
+  font-size:11px;
+  letter-spacing:0.03em;
 }
 
-/* ─── Print / PDF ─── */
-@media print {
-  body.tc-app .bottom-pill,
-  body.tc-app .hdr,
-  body.tc-app .app-menu-sheet,
-  body.tc-app .app-menu-overlay,
-  body.tc-app .plus-sheet,
-  body.tc-app .plus-overlay,
-  body.tc-app .project-sheet,
-  body.tc-app .project-overlay,
-  body.tc-app .pill-indicator    { display: none; }
-  body.tc-app #app-shell         { padding: 0; }
-  body.tc-app .tab-panel         { display: none; }
-  body.tc-app .tab-panel.is-active { display: block; }
+.hdr-sub {
+  font-size:12px;
+  color:var(--t3);
 }
 
-/* ═══════════════════════════════════════════════════════
-   BUGFIX-BATCH — 5 visuelle Korrekturen
-═══════════════════════════════════════════════════════ */
-
-/* ─── FIX 1: Module unter der Navigation-Pill verbergen ───
-   Schwarze Abdeckleiste hinter der Pill — verhindert
-   dass Tab-Inhalte durch die halbtransparente Pill sichtbar sind */
-@media (max-width: 899px) {
-  body.tc-app::after {
-    content: '';
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    height: calc(env(safe-area-inset-bottom, 0px) + 88px);
-    background: var(--bg);
-    z-index: 2999;           /* unter der Pill (3000), über dem Content */
-    pointer-events: none;
-  }
-
-  /* Pill-Container selbst muss über der Abdeckleiste liegen */
-  body.tc-app .bottom-pill {
-    z-index: 3001;
-  }
-
-  /* Genug Abstand damit letzter Content nicht hinter der Leiste verschwindet */
-  body.tc-app .tab-inner,
-  body.tc-app .tab-panel.is-active {
-    padding-bottom: calc(var(--tcp-ui-nav-h) + 80px + env(safe-area-inset-bottom, 0px));
-  }
+.hdr-menu-btn {
+  border:1px solid var(--gb-soft);
+  background:var(--glass-mid);
+  color:var(--t1);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.08);
 }
 
-/* ─── FIX 2: Pipe-Tab — beide Input-Felder gleich groß ───
-   Druckverlust-Input (.inp-sm) auf .inp-Level anheben */
-#tab-pipe .pipe-params .inp-sm,
-#tab-pipe .pipe-params input {
-  background:    var(--glass-mid);
-  border:        1px solid var(--gb-strong);
-  color:         var(--t1);
-  font-family:   var(--fm);
-  font-size:     20px;
-  font-weight:   700;
-  padding:       13px 52px 13px 14px;
-  border-radius: var(--r-m);
-  height:        auto;
-  box-shadow:    inset 0 2px 4px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.04);
-  transition:    border-color .15s;
-}
-#tab-pipe .pipe-params .inp-sm:focus,
-#tab-pipe .pipe-params input:focus {
-  border-color: var(--gb-accent);
-  outline: none;
+.hdr-menu-btn.open {
+  background:rgba(79,168,255,.18);
+  border-color:rgba(79,168,255,.45);
+  color:var(--blue);
 }
 
-/* ─── FIX 3: Trinkwasser — +NE Button Höhenausgleich ───
-   Select und Button auf gleiche Höhe bringen */
-.tw-ne-row,
-[id="tw-ne-row"],
-.gc .igrp > div:has(> .gl-sel + .btn-add),
-.gc .igrp > div:has(> select + button) {
-  display:     flex;
-  align-items: stretch;
-  gap:         8px;
-}
-/* Fallback: direkte Regel für den +NE Bereich */
-#tab-trinkwasser .gl-sel {
-  flex: 1;
-  min-width: 0;
-}
-#tab-trinkwasser .btn-add,
-#tw-add-ne {
-  height:        auto;
-  min-height:    52px;
-  align-self:    stretch;
-  padding:       0 18px;
-  white-space:   nowrap;
-  flex-shrink:   0;
-  border-radius: var(--r-m);
+.hdr-menu-btn span { opacity:0.86; }
+
+/* ═══════════════════════════════════════════════════════════════════════════════
+   CARDS & CONTAINERS
+═══════════════════════════════════════════════════════════════════════════════ */
+
+.gc {
+  background:var(--glass-low);
+  border:1px solid var(--gb-soft);
+  border-radius:var(--r-l);
+  padding:16px;
+  position:relative;
+  overflow:hidden;
 }
 
-/* ─── FIX 4: Trinkwasser Ergebnisse — volle Breite, untereinander ───
-   out-grid im Trinkwasser-Tab: 1 Spalte statt 2 */
-#tab-trinkwasser .out-grid,
-#tab-trinkwasser .tw-result-grid {
-  grid-template-columns: 1fr;
-  gap: 8px;
+.gc::before {
+  content:'';
+  position:absolute;
+  top:0;
+  left:0;
+  right:0;
+  height:1px;
+  background:var(--shimmer);
+  pointer-events:none;
 }
-/* Jede Ergebniszeile: volle Breite, horizontal Label|Wert */
-#tab-trinkwasser .ob {
-  display:         flex;
-  align-items:     center;
-  justify-content: space-between;
-  gap:             12px;
-  padding:         14px 18px;
-  border-radius:   18px;
-  min-height:      56px;
-  width:           100%;
+
+.gc-h:focus-within { border-color:rgba(255,107,53,.45); }
+.gc-c:focus-within { border-color:rgba(0,196,232,.45); }
+
+.out-card {
+  background:var(--glass-low);
+  border:1px solid var(--gb-soft);
+  border-radius:var(--r-l);
+  padding:16px;
+  position:relative;
+  overflow:hidden;
 }
-#tab-trinkwasser .ob .ob-title { margin: 0; flex: 1; min-width: 0; }
-#tab-trinkwasser .ob .out-val  { white-space: nowrap; flex-shrink: 0; }
 
-/* ─── FIX 5: Globaler 8px-Mindestabstand ───
-   Verhindert Überschneidungen in allen Tabs */
+.out-card::before {
+  content:'';
+  position:absolute;
+  top:0;
+  left:0;
+  right:0;
+  height:1px;
+  background:var(--shimmer);
+}
 
-/* Cards: Mindest-Gap zwischen aufeinanderfolgenden Elementen */
-.gc + .gc,
-.gc + .out-card,
-.out-card + .gc,
-.gc + .fml,
-.fml + .gc,
-.gc + .info-accent-card,
-.out-card + .fml { margin-top: 8px; }
+.out-grid {
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:var(--gap-s);
+}
 
-/* Innerhalb von Cards: Label-Gruppen Mindestabstand */
-.igrp { margin-bottom: max(var(--gap), 8px); }
-.igrp + .igrp { margin-top: 0; }
+/* Result Box (Output) */
+.ob {
+  background:var(--glass-mid);
+  border:1px solid var(--gb-mid);
+  border-radius:var(--r-m);
+  padding:12px 16px;
+  position:relative;
+  min-height:var(--pill);
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+}
 
-/* Mode-Switcher Abstand nach unten */
-.modes { margin-bottom: max(var(--gap-l), 16px); }
+.ob::before {
+  content:'';
+  position:absolute;
+  top:0;
+  left:0;
+  right:0;
+  height:1px;
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,.12),transparent);
+}
 
-/* Chips: mehr Luft */
-.chips { margin-top: max(10px, 8px); gap: max(6px, 8px); }
+.ob-h { border-color:rgba(255,107,53,0.22); }
+.ob-h::before { background:linear-gradient(90deg,transparent,rgba(255,107,53,0.60),transparent); }
+.ob-c { border-color:rgba(0,196,232,0.18); }
+.ob-c::before { background:linear-gradient(90deg,transparent,rgba(0,196,232,0.55),transparent); }
 
-/* Pipe-params bekommt konsistenten Abstand zur Card darunter */
-.pipe-params { margin-bottom: 8px; }
+.ob-title {
+  display:flex;
+  align-items:center;
+  gap:7px;
+  margin-bottom:14px;
+}
 
-/* Pill-Nav-Container auf Grids, die es darunter gibt */
-.pipe-pair   { gap: max(var(--gap-s), 8px); }
-.input-grid2,
-.input-grid2-sm,
-.input-grid3 { gap: max(var(--gap-s), 8px); }
+.ob-title-lbl {
+  font-family:var(--f);
+  font-size:11px;
+  font-weight:700;
+  letter-spacing:.13em;
+  text-transform:uppercase;
+}
 
-/* Ergebniszeilen in Cards */
-.out-row     { margin-bottom: max(10px, 8px); }
+.ob-h .ob-title-lbl { color:var(--heat-t); }
+.ob-c .ob-title-lbl { color:var(--cold-t); }
 
-/* Tab-Inner: konsistenter Gap */
-.tab-inner   { gap: max(var(--tcp-panel-gap), 8px); }
+.ob-row { margin-bottom:10px; }
+.ob-row:last-child { margin-bottom:0; }
+
+.out-row { margin-bottom:10px; }
+.out-row:last-child { margin-bottom:0; }
+
+.out-key {
+  font-family:var(--f);
+  font-size:11px;
+  font-weight:700;
+  letter-spacing:.06em;
+  color:var(--t3);
+  margin-bottom:4px;
+}
+
+.out-val {
+  font-family:var(--fm);
+  font-weight:700;
+  line-height:1;
+  font-size:clamp(18px,3.8vw,26px);
+  transition:color 0.22s;
+}
+
+.out-val .u {
+  font-size:12px;
+  font-weight:400;
+  margin-left:3px;
+  color:var(--t3);
+}
+
+.ob-h .out-val { color:var(--t4); }
+.ob-h .out-val.has { color:var(--out-h); }
+.ob-c .out-val { color:var(--t4); }
+.ob-c .out-val.has { color:var(--out-c); }
+
+/* ═══════════════════════════════════════════════════════════════════════════════
+   INPUTS & CONTROLS
+═══════════════════════════════════════════════════════════════════════════════ */
+
+.inp,
+.inp-sm,
+.gl-sel {
+  background:var(--glass-mid);
+  border:1px solid var(--gb-soft);
+  color:var(--t1);
+  font-family:var(--f);
+  border-radius:var(--r-m);
+  transition:border-color 0.22s, background 0.22s;
+}
+
+.inp {
+  width:100%;
+  font-size:18px;
+  padding:12px 14px;
+  min-height:var(--pill);
+}
+
+.inp-sm {
+  font-size:15px;
+  padding:10px 12px;
+  min-height:40px;
+}
+
+.gl-sel {
+  padding:11px 32px 11px 12px;
+  font-size:13px;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath fill='%234fa8ff' d='M0 0l6 8 6-8z'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;
+  background-position:right 12px center;
+  background-size:12px 8px;
+  padding-right:32px;
+  appearance:none;
+  cursor:pointer;
+}
+
+.inp:focus,
+.inp-sm:focus,
+.gl-sel:focus {
+  outline:none;
+  border-color:var(--gb-strong);
+  background:rgba(255,255,255,.05);
+}
+
+.inp-ro {
+  background:var(--glass-mid);
+  border:1px solid var(--gb-soft);
+  color:var(--t4);
+  font-family:var(--fm);
+  padding:11px 14px;
+  border-radius:var(--r-m);
+  min-height:var(--pill);
+  display:flex;
+  align-items:center;
+  transition:all 0.22s;
+}
+
+.inp-ro.empty { color:var(--t4); opacity:0.7; }
+
+/* ═══════════════════════════════════════════════════════════════════════════════
+   BUTTONS
+═══════════════════════════════════════════════════════════════════════════════ */
+
+button {
+  font-family:var(--f);
+  cursor:pointer;
+  transition:all 0.22s;
+  -webkit-tap-highlight-color:transparent;
+}
+
+.btn-primary {
+  width:100%;
+  height:var(--pill);
+  border:none;
+  border-radius:var(--r-m);
+  background:linear-gradient(135deg, var(--blue), #2e80d8);
+  color:white;
+  font-weight:700;
+  font-size:15px;
+  box-shadow:0 10px 28px rgba(79,168,255,.18);
+}
+
+.btn-primary:hover { box-shadow:0 14px 36px rgba(79,168,255,.28); }
+.btn-primary:active { transform:scale(0.98); }
+
+.btn-secondary {
+  padding:10px 16px;
+  border:1px solid var(--gb-soft);
+  background:var(--glass-mid);
+  color:var(--t1);
+  border-radius:var(--r-m);
+  font-weight:600;
+  font-size:14px;
+}
+
+.btn-secondary:hover { border-color:var(--gb-strong); background:rgba(255,255,255,.08); }
+
+.btn-mini,
+.ew-mini-btn {
+  min-height:32px;
+  padding:0 13px;
+  border-radius:999px;
+  border:1px solid rgba(96,165,250,.45);
+  background:linear-gradient(180deg,rgba(96,165,250,.20),rgba(96,165,250,.09));
+  color:var(--blue);
+  font-family:var(--f);
+  font-size:12px;
+  font-weight:750;
+  cursor:pointer;
+}
+
+.btn-mini.danger,
+.ew-mini-btn.danger {
+  border-color:rgba(255,107,107,.45);
+  background:linear-gradient(180deg,rgba(255,107,107,.18),rgba(255,107,107,.08));
+  color:#ff6b6b;
+}
+
+.btn-mini:hover,
+.ew-mini-btn:hover { opacity:0.9; }
+
+.btn-hk {
+  width:100%;
+  height:var(--pill);
+  border:none;
+  border-radius:var(--r-m);
+  background:var(--glass-mid);
+  border:1px solid var(--gb-soft);
+  color:var(--t1);
+  font-weight:700;
+  font-size:14px;
+  cursor:pointer;
+  transition:all 0.22s;
+}
+
+.btn-hk.on-h { border-color:rgba(255,107,53,.45); background:rgba(255,107,53,.12); }
+.btn-hk.on-k { border-color:rgba(0,196,232,.45); background:rgba(0,196,232,.12); }
+
+/* ═══════════════════════════════════════════════════════════════════════════════
+   LABELS & TEXT
+═══════════════════════════════════════════════════════════════════════════════ */
+
+.slbl {
+  font-family:var(--f);
+  font-size:12px;
+  font-weight:700;
+  letter-spacing:.13em;
+  text-transform:uppercase;
+  color:var(--t2);
+}
+
+.ilbl {
+  font-family:var(--f);
+  font-size:11px;
+  font-weight:700;
+  letter-spacing:.10em;
+  text-transform:uppercase;
+  color:var(--t2);
+  display:block;
+  margin-bottom:8px;
+}
+
+.ptitle {
+  display:flex;
+  align-items:center;
+  gap:8px;
+  margin-bottom:14px;
+}
+
+.ptitle-lbl {
+  font-family:var(--f);
+  font-size:12px;
+  font-weight:700;
+  letter-spacing:.08em;
+  text-transform:uppercase;
+  color:var(--t1);
+}
+
+.dot {
+  width:7px;
+  height:7px;
+  border-radius:50%;
+  flex-shrink:0;
+}
+
+.dot-h { background:var(--heat); }
+.dot-c { background:var(--cold); }
+
+/* ═══════════════════════════════════════════════════════════════════════════════
+   BADGES & CHIPS
+═══════════════════════════════════════════════════════════════════════════════ */
+
+.chip {
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  padding:8px 14px;
+  border-radius:16px;
+  background:var(--glass-mid);
+  border:1px solid var(--gb-soft);
+  font-size:13px;
+  color:var(--t2);
+  font-weight:600;
+}
+
+.chip strong { color:var(--t1); font-weight:700; }
+
+.badge {
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  min-width:24px;
+  height:24px;
+  padding:0 8px;
+  border-radius:12px;
+  background:var(--blue);
+  color:white;
+  font-size:11px;
+  font-weight:700;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════════
+   MODALS & OVERLAYS
+═══════════════════════════════════════════════════════════════════════════════ */
+
+.app-menu-overlay {
+  background:rgba(0,0,0,.52);
+}
+
+.app-menu-sheet {
+  background:var(--bg);
+  border-left:1px solid var(--gb-soft);
+}
+
+.app-menu-sheet-inner {
+  background:linear-gradient(180deg,
+    rgba(255,255,255,.04),
+    rgba(255,255,255,.02) 50%,
+    transparent 100%);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════════
+   BOTTOM PILL
+═══════════════════════════════════════════════════════════════════════════════ */
+
+.bottom-pill {
+  background:linear-gradient(180deg,
+    rgba(79,168,255,.14),
+    rgba(79,168,255,.08));
+  border:1px solid rgba(79,168,255,.24);
+  backdrop-filter:blur(20px);
+  -webkit-backdrop-filter:blur(20px);
+  box-shadow:0 20px 32px rgba(0,0,0,.32);
+}
+
+.bottom-pill button {
+  background:rgba(255,255,255,.08);
+  border:1px solid rgba(255,255,255,.12);
+  color:var(--t1);
+  font-weight:700;
+}
+
+.bottom-pill button:hover { background:rgba(255,255,255,.12); }
+
+/* ═══════════════════════════════════════════════════════════════════════════════
+   MODULE ACCENTS (Module-spezifische Farbtöne)
+═══════════════════════════════════════════════════════════════════════════════ */
+
+#tab-flow .gc { border-top:3px solid var(--blue); }
+#tab-flow .gc-h { border-top-color:var(--heat); }
+#tab-flow .gc-c { border-top-color:var(--cold); }
+
+#tab-luft .gc { border-top:3px solid var(--air); }
+#tab-unit .gc { border-top:3px solid var(--grn); }
+#tab-hx .gc { border-top:3px solid #746cff; }
+#tab-wrg .gc { border-top:3px solid var(--blue); }
+#tab-mix .gc { border-top:3px solid var(--grn); }
+#tab-trinkwasser .gc { border-top:3px solid var(--blue); }
+#tab-mag .gc { border-top:3px solid var(--blue); }
+#tab-entwaesserung .gc { border-top:3px solid var(--blue); }
+
+/* ═══════════════════════════════════════════════════════════════════════════════
+   RESPONSIVE TEXT SIZING
+═══════════════════════════════════════════════════════════════════════════════ */
+
+@media (min-width:900px) {
+  .slbl { font-size:13px; }
+  .ptitle { gap:12px; }
+  .ptitle-lbl { font-size:13px; }
+  .btn-primary { font-size:16px; height:56px; }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════════
+   UTILITY COLORS
+═══════════════════════════════════════════════════════════════════════════════ */
+
+.text-heat { color:var(--heat); }
+.text-cold { color:var(--cold); }
+.text-blue { color:var(--blue); }
+.text-grn { color:var(--grn); }
+.text-ok { color:var(--ok); }
+.text-warn { color:var(--warn); }
+.text-danger { color:var(--danger); }
+.text-muted { color:var(--t3); }
+
+.bg-heat { background:rgba(255,107,53,.12); border-color:rgba(255,107,53,.35); }
+.bg-cold { background:rgba(0,196,232,.12); border-color:rgba(0,196,232,.35); }
+.bg-grn { background:rgba(52,211,153,.12); border-color:rgba(52,211,153,.35); }
+.bg-blue { background:rgba(79,168,255,.12); border-color:rgba(79,168,255,.35); }

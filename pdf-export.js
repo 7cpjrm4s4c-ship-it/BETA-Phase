@@ -47,7 +47,7 @@ function openPdfSheet() {
   const modal = document.createElement('div');
   modal.id = 'pdf-modal';
   modal.innerHTML = `
-    <div id="pdf-overlay" id="pdf-overlay-bg"></div>
+    <div id="pdf-overlay" onclick="closePdfSheet()"></div>
     <div id="pdf-sheet">
       <div class="sh-handle"></div>
       <div class="sh-title">PDF exportieren</div>
@@ -87,14 +87,14 @@ function openPdfSheet() {
           </div>
         </div>
 
-        <button id="pdf-btn-save" type="button"
+        <button onclick="triggerPdfPrint()"
           style="width:100%;height:54px;border:none;border-radius:14px;
                  background:linear-gradient(135deg,#4fa8ff,#2e80d8);
                  color:#fff;font-size:16px;font-weight:700;cursor:pointer;
                  margin-top:8px;box-shadow:0 10px 30px rgba(79,168,255,.25)">
           Als PDF speichern
         </button>
-        <button id="pdf-btn-cancel" type="button"
+        <button onclick="closePdfSheet()"
           style="width:100%;height:44px;border:none;border-radius:12px;
                  background:rgba(255,255,255,.07);color:rgba(255,255,255,.55);
                  font-size:14px;cursor:pointer;margin-top:8px">
@@ -142,13 +142,9 @@ function openPdfSheet() {
     document.body.appendChild(modal);
   } catch(e) {
     console.error('[PDF] body.appendChild failed:', e.message);
+    // Fallback: insert before body end
     document.documentElement.appendChild(modal);
   }
-
-  // EventListener nach DOM-Insert (kein inline onclick)
-  document.getElementById('pdf-overlay-bg') ?.addEventListener('click', closePdfSheet);
-  document.getElementById('pdf-btn-save')   ?.addEventListener('click', triggerPdfPrint);
-  document.getElementById('pdf-btn-cancel') ?.addEventListener('click', closePdfSheet);
 
   setTimeout(() => {
     const sb = document.getElementById('pdf-sb');
@@ -221,7 +217,7 @@ function _openPrintWindow(bodyHtml) {
   overlay.innerHTML = `
     <div class="msr-pbar">
       <button class="msr-pbtn-close" id="msr-close-pdf">&#10005; Schlie&szlig;en</button>
-      <button class="msr-pbtn-print" id="msr-print-btn" type="button">
+      <button class="msr-pbtn-print" onclick="window.print()">
         &#128438;&nbsp;Drucken&nbsp;/&nbsp;PDF
       </button>
     </div>
@@ -276,7 +272,6 @@ function _openPrintWindow(bodyHtml) {
     overlay._headStyle?.remove();
     document.getElementById(PRINT_ID)?.remove();
   });
-  document.getElementById('msr-print-btn')?.addEventListener('click', () => window.print());
 }
 
 /* ───────────────────────────────────────

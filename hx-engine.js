@@ -489,7 +489,7 @@ function _showHxError(msg) {
   const el = document.getElementById('hx-state-result');
   if (!el) return;
   const prev = el.innerHTML;
-  el.innerHTML = `<span class="wrg-err-text">\u26a0 ${msg}</span>`;
+  el.innerHTML = `<span style="color:rgba(255,100,80,.9);font-size:13px">\u26a0 ${msg}</span>`;
   setTimeout(() => { el.innerHTML = prev; }, 2200);
 }
 
@@ -647,11 +647,11 @@ function calcHxProcess() {
   if (!res) return;
 
   if (!proc) {
-    res.innerHTML = '<span class="val--muted">Prozessart wählen (Schritt 3).</span>';
+    res.innerHTML = '<span style="color:var(--t3)">Prozessart wählen (Schritt 3).</span>';
     return;
   }
   if (isNaN(T2)) {
-    res.innerHTML = '<span class="val--muted">Zieltemperatur eingeben.</span>';
+    res.innerHTML = '<span style="color:var(--t3)">Zieltemperatur eingeben.</span>';
     return;
   }
 
@@ -686,7 +686,7 @@ function _renderProcessSteps(steps, el) {
   const sign = v => v >= 0 ? '+' : '';
   const fmt  = (v, d) => isNaN(v) ? '--' : (sign(v) + (+v).toFixed(d));
 
-  let html = '<div class="hx-result-list">';
+  let html = '<div style="font-family:var(--f);font-size:12px">';
 
   // Schritte
   steps.forEach((step, i) => {
@@ -694,19 +694,19 @@ function _renderProcessSteps(steps, el) {
     const dx = step.to.x - step.from.x;
     const dh = step.to.h - step.from.h;
     html += `
-      <div class="hx-step-row"
+      <div style="display:flex;align-items:flex-start;gap:8px;margin-bottom:7px;
                   padding:8px 10px;background:rgba(255,255,255,.04);
                   border-radius:10px;border-left:3px solid ${step.color}">
-        <div class="hx-step-content">
-          <div class="hx-step-label">
+        <div style="flex:1;min-width:0">
+          <div style="font-weight:700;font-size:12px;color:var(--t1);margin-bottom:3px">
             ${i + 1}.&nbsp;${step.name}
           </div>
-          <div class="hx-step-vals">
+          <div style="font-family:var(--fm);font-size:11px;color:var(--t3);line-height:1.7">
             ΔT ${fmt(dT,1)} K&emsp;
             Δx ${fmt(dx,2)} g/kg&emsp;
             Δh ${fmt(dh,1)} kJ/kg
           </div>
-          <div class="hx-step-note">
+          <div style="font-size:10px;color:var(--t3);margin-top:2px">
             ${step.from.T.toFixed(1)}°C / ${step.from.phi.toFixed(0)}% / ${step.from.x.toFixed(2)} g/kg
             →
             ${step.to.T.toFixed(1)}°C / ${step.to.phi.toFixed(0)}% / ${step.to.x.toFixed(2)} g/kg
@@ -720,14 +720,15 @@ function _renderProcessSteps(steps, el) {
   const dx_tot = sEnd.x - s0.x;
   const dh_tot = sEnd.h - s0.h;
   html += `
-    <div class="wrg-balance">
-      <div class="wrg-balance-title">Gesamtbilanz</div>
-      <div class="wrg-balance-row">
+    <div style="margin-top:6px;padding:8px 10px;background:rgba(79,168,255,.08);
+                border:1px solid rgba(79,168,255,.20);border-radius:10px">
+      <div style="font-size:11px;font-weight:700;color:var(--blue);margin-bottom:3px">Gesamtbilanz</div>
+      <div style="font-family:var(--fm);font-size:11px;color:var(--t2);line-height:1.7">
         ΔT ${fmt(dT_tot,1)} K&emsp;
         Δx ${fmt(dx_tot,2)} g/kg&emsp;
         Δh ${fmt(dh_tot,1)} kJ/kg
       </div>
-      <div class="hx-step-note">
+      <div style="font-size:10px;color:var(--t3);margin-top:2px">
         Endzustand: ${sEnd.T.toFixed(1)}°C • φ ${sEnd.phi.toFixed(0)}% • x ${sEnd.x.toFixed(2)} g/kg
       </div>
     </div>`;
@@ -919,14 +920,48 @@ document.addEventListener('DOMContentLoaded', () => {
     _rt = setTimeout(() => drawHxChart(_state), 120);
   });
 
-
-  // ± Sign-Buttons (onclick entfernt aus HTML)
-  document.getElementById('btn-hx-temp-sign')?.addEventListener('click', () => toggleTempSign('hx-temp'));
-  document.getElementById('btn-hx-target-sign')?.addEventListener('click', () => toggleTempSign('hx-target-temp'));
-
   document.querySelectorAll('.tab-btn').forEach(btn => {
     btn.addEventListener('click', () => {
       if (btn.dataset.tab === 'hx') setTimeout(() => drawHxChart(_state), 80);
     });
   });
 });
+
+/* Phase 17: PDF-Snapshot Provider */
+window.TCP_PDF_SNAPSHOTS = window.TCP_PDF_SNAPSHOTS || {};
+window.TCP_PDF_SNAPSHOTS.hx = function getHxPdfSnapshot() {
+  const txt = id => document.getElementById(id)?.textContent?.trim() || '–';
+  const val = id => document.getElementById(id)?.value?.trim() || '';
+  const selText = id => {
+    const el = document.getElementById(id);
+    return el?.options?.[el.selectedIndex]?.text || '–';
+  };
+  let image = null;
+  try {
+    if (typeof window._hxBuildPdfSnapshot === 'function') image = window._hxBuildPdfSnapshot();
+  } catch (_) {}
+  return {
+    module: 'hx',
+    image,
+    source: {
+      temp: val('hx-temp'),
+      rh: val('hx-rh'),
+      x: val('hx-x'),
+      mode: document.querySelector('.hx-mode.active')?.dataset?.mode || 'rh'
+    },
+    sourceState: {
+      temp: txt('state-temp'),
+      phi: txt('state-phi'),
+      x: txt('state-x'),
+      h: txt('state-h'),
+      tdew: txt('state-tdew')
+    },
+    target: {
+      temp: val('hx-target-temp'),
+      rh: val('hx-target-rh'),
+      process: selText('hx-process')
+    },
+    resultText: document.getElementById('hx-result')?.innerText?.trim() || '–',
+    generatedAt: new Date().toISOString()
+  };
+};

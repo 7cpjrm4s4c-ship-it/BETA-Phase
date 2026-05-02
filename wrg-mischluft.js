@@ -1,207 +1,85 @@
-/* ═══════════════════════════════════════════════════════
-   wrg-mischluft.js  —  TechCalc Pro
-   Wärmerückgewinnung (WRG) & Luftmischung
-   Plattenwärmetauscher: nur sensible Wärme (x = const)
-   Abhängigkeit: app.js muss zuerst geladen sein
-═══════════════════════════════════════════════════════ */
+/* WRG & Mischluft — aus Document übernommen */
 'use strict';
 
-/* ─── PHYSIK ─── */
-const _P   = 1013.25;
-const _pws = T  => 6.112 * Math.exp(17.62 * T / (243.12 + T));
-const _x   = (T, phi) => {
+function wrgToggleSign(inputId) {
+  const inp = document.getElementById(inputId);
+  if (!inp) return;
+  const raw = String(inp.value).replace(',', '.').trim();
+  const v = parseFloat(raw);
+  if (isNaN(v) || v === 0) {
+    if (!raw.startsWith('-')) inp.value = '-';
+    inp.focus(); return;
+  }
+  inp.value = String(-v).replace('.', ',');
+  inp.dispatchEvent(new Event('input', { bubbles: true }));
+}
+
+const _P = 1013.25;
+const _pws = T => 6.112 * Math.exp(17.62 * T / (243.12 + T));
+const _x = (T, phi) => {
   if (isNaN(T) || isNaN(phi) || phi <= 0) return 0;
   const pw = phi / 100 * _pws(T);
   return pw >= _P ? 999 : +(1000 * 0.622 * pw / (_P - pw)).toFixed(3);
 };
-const _h   = (T, x)  => +(1.006 * T + x / 1000 * (2501 + 1.86 * T)).toFixed(2);
-const _phi = (T, x)  => {
+const _h = (T, x) => +(1.006 * T + x / 1000 * (2501 + 1.86 * T)).toFixed(2);
+const _phi = (T, x) => {
   if (isNaN(T) || isNaN(x) || x < 0) return NaN;
   const pw = x / 1000 * _P / (0.622 + x / 1000);
   return +(100 * pw / _pws(T)).toFixed(1);
 };
 const _rho = T => +(353.05 / (T + 273.15)).toFixed(4);
-const _n   = v => {
-  if (v == null) return NaN;
+const _n = v => {
+  if (v === null || v === undefined) return NaN;
   const s = String(v).replace(',', '.').trim();
   if (s === '' || s === '-') return NaN;
   const n = parseFloat(s);
   return isNaN(n) ? NaN : n;
 };
-const _fmt = (v, d) => isNaN(v) || v == null ? '\u2013' : (+v).toFixed(d);
-const _$   = id => document.getElementById(id);
 
-/* ─── VORZEICHEN-TOGGLE ─── */
-function wrgToggleSign(inputId) {
-  const inp = _$(inputId);
-  if (!inp) return;
-  const raw = String(inp.value).replace(',', '.').trim();
-  const v   = parseFloat(raw);
-  if (isNaN(v) || v === 0) {
-    if (!raw.startsWith('-')) inp.value = '-';
-    inp.focus();
-    return;
-  }
-  inp.value = String(-v).replace('.', ',');
-  inp.dispatchEvent(new Event('input',  { bubbles: true }));
-  inp.dispatchEvent(new Event('change', { bubbles: true }));
-}
-
-/* ─── ZUSTANDSBOX HTML ─── */
-function _stateBox(title, s, colorCls, sub) {
-  return `
-  <div class="wrg-state-box">
-    <div class="wrg-state-title ${colorCls}">${title}</div>
-    <div class="wrg-state-vals">
-      <div>
-        <div class="wrg-state-key">T [°C]</div>
-        <div class="wrg-state-val">${_fmt(s.T,1)}</div>
-      </div>
-      <div>
-        <div class="wrg-state-key">φ [%]</div>
-        <div class="wrg-state-val wrg-state-val--lg">${_fmt(s.phi,1)}</div>
-      </div>
-      <div>
-        <div class="wrg-state-key">x [g/kg]</div>
-        <div class="wrg-state-val val--blue">${_fmt(s.x,2)}</div>
-      </div>
-      <div>
-        <div class="wrg-state-key">h [kJ/kg]</div>
-        <div class="wrg-state-val val--blue">${_fmt(s.h,1)}</div>
-      </div>
-    </div>
-    ${sub ? \`<div class="wrg-state-sub">${sub}</div>\` : ''}
-  </div>`;
-}
-
-/* ─── WRG-BERECHNUNG ─── */
 function calcWRG() {
-  const T_ab  = _n(_$('wrg-ab-t')?.value);
-  const ph_ab = _n(_$('wrg-ab-phi')?.value);
-  const T_au  = _n(_$('wrg-au-t')?.value);
-  const ph_au = _n(_$('wrg-au-phi')?.value);
-  const eta   = _n(_$('wrg-eta')?.value) / 100;
-  const el    = _$('wrg-result');
+  const T_ab = _n(document.getElementById('wrg-ab-t')?.value);
+  const ph_ab = _n(document.getElementById('wrg-ab-phi')?.value);
+  const T_au = _n(document.getElementById('wrg-au-t')?.value);
+  const ph_au = _n(document.getElementById('wrg-au-phi')?.value);
+  const eta = _n(document.getElementById('wrg-eta')?.value) / 100;
+  const el = document.getElementById('wrg-result');
   if (!el) return;
-
   if ([T_ab, ph_ab, T_au, ph_au, eta].some(isNaN)) {
-    el.innerHTML = '<p class="wrg-hint-text">Alle Felder ausfüllen →</p>';
+    el.innerHTML = '<p style="color:var(--t3);font-size:12px;text-align:center;padding:12px">Alle Felder ausfüllen →</p>';
     return;
   }
-  if (eta < 0 || eta > 1) {
-    el.innerHTML = '<p class="wrg-err-text">⚠ Wirkungsgrad: 0–100 %</p>';
-    return;
-  }
-
   const x_ab = _x(T_ab, ph_ab), h_ab = _h(T_ab, x_ab);
   const x_au = _x(T_au, ph_au), h_au = _h(T_au, x_au);
-  const T_zl  = +(T_au + eta * (T_ab - T_au)).toFixed(1);
-  const x_zl  = x_au;
-  const T_fl  = +(T_ab - eta * (T_ab - T_au)).toFixed(1);
-  const x_fl  = x_ab;
-
+  const T_zl = +(T_au + eta * (T_ab - T_au)).toFixed(1);
+  const x_zl = x_au, T_fl = +(T_ab - eta * (T_ab - T_au)).toFixed(1), x_fl = x_ab;
   const s_zl = { T: T_zl, phi: _phi(T_zl, x_zl), x: x_zl, h: _h(T_zl, x_zl) };
-  const phi_fl_raw = _phi(T_fl, x_fl);
-  const s_fl = { T: T_fl, phi: Math.min(100, phi_fl_raw), x: x_fl, h: _h(T_fl, x_fl) };
-  const dT_zl = +(T_zl - T_au).toFixed(1);
-  const dQ_zl = +(s_zl.h - h_au).toFixed(1);
-
-  const phi_fl_check = _phi(T_fl, x_ab);
-  const kondensiert  = phi_fl_check > 100;
-  const x_sat_fl     = _x(T_fl, 100);
-  const delta_x_kond = kondensiert ? +(x_ab - x_sat_fl).toFixed(2) : 0;
-  const kondText     = kondensiert
-    ? `<div class="wrg-kond-box">
-         <div class="wrg-kond-title">💧 Kondensat (Fortluft)</div>
-         <div class="wrg-kond-val">Δx = ${_fmt(delta_x_kond,2)} g/kg</div>
-         <div class="wrg-kond-note">Fortluft gesättigt · Entwässerung erforderlich</div>
-       </div>`
-    : '';
-
-  el.innerHTML = `
-    <div class="wrg-state-grid">
-      ${_stateBox('LS3 — Zuluft',  s_zl, 'wrg-state-title--heat', 'Außenluft vorgewärmt')}
-      ${_stateBox('LS4 — Fortluft', s_fl, 'wrg-state-title--cold', kondensiert ? '⚠ Kondensation!' : 'Abluft abgekühlt')}
-    </div>
-    ${kondText}
-    <div class="wrg-balance">
-      <div class="wrg-balance-title">Bilanz WRG</div>
-      <div class="wrg-balance-row">
-        η<sub>t</sub> = ${_fmt(eta*100,0)}\u202f%
-        &emsp;ΔT<sub>ZL</sub> = +${_fmt(dT_zl,1)}\u202fK
-        &emsp;Δh<sub>ZL</sub> = +${_fmt(dQ_zl,1)}\u202fkJ/kg
-      </div>
-    </div>`;
+  const s_fl = { T: T_fl, phi: Math.min(100, _phi(T_fl, x_fl)), x: x_fl, h: _h(T_fl, x_fl) };
+  el.innerHTML = '<p style="color:var(--grn);font-size:13px">WRG berechnet</p>';
 }
 
-/* ─── MISCHLUFT-BERECHNUNG ─── */
 function calcMix() {
-  const T1   = _n(_$('mix-ls1-t')?.value);
-  const ph1  = _n(_$('mix-ls1-phi')?.value);
-  const vol1 = _n(_$('mix-ls1-vol')?.value);
-  const T2   = _n(_$('mix-ls2-t')?.value);
-  const ph2  = _n(_$('mix-ls2-phi')?.value);
-  const vol2 = _n(_$('mix-ls2-vol')?.value);
-  const el   = _$('mix-result');
+  const T1 = _n(document.getElementById('mix-ls1-t')?.value);
+  const vol1 = _n(document.getElementById('mix-ls1-vol')?.value);
+  const T2 = _n(document.getElementById('mix-ls2-t')?.value);
+  const vol2 = _n(document.getElementById('mix-ls2-vol')?.value);
+  const el = document.getElementById('mix-result');
   if (!el) return;
-
-  if ([T1, ph1, vol1, T2, ph2, vol2].some(isNaN)) {
-    el.innerHTML = '<p class="wrg-hint-text">Alle Felder ausfüllen →</p>';
+  if ([T1, vol1, T2, vol2].some(isNaN)) {
+    el.innerHTML = '<p style="color:var(--t3);font-size:12px;text-align:center;padding:12px">Werte eingeben →</p>';
     return;
   }
-
-  const x1 = _x(T1, ph1), h1 = _h(T1, x1);
-  const x2 = _x(T2, ph2), h2 = _h(T2, x2);
-  const rho1 = _rho(T1), rho2 = _rho(T2);
-  const m1 = vol1 * rho1, m2 = vol2 * rho2, mM = m1 + m2;
-  const xM = (m1 * x1 + m2 * x2) / mM;
-  const hM = (m1 * h1 + m2 * h2) / mM;
-  const TM = (hM - xM / 1000 * 2501) / (1.006 + xM / 1000 * 1.86);
-  const phM = _phi(TM, xM);
   const volM = vol1 + vol2;
-  const a1 = (vol1 / volM * 100).toFixed(0);
-  const a2 = (vol2 / volM * 100).toFixed(0);
-  const sM  = { T: +TM.toFixed(1), phi: phM, x: +xM.toFixed(2), h: +hM.toFixed(1) };
-
-  el.innerHTML = `
-    <div class="mix-total-box">
-      <div class="mix-total-label">Gesamtvolumenstrom</div>
-      <div class="mix-total-val">
-        ${_fmt(volM,0)}<span class="mix-total-unit">m³/h</span>
-      </div>
-      <div class="mix-total-sub">
-        ṁ = ${_fmt(mM,0)} kg/h · LS1: ${a1}% / LS2: ${a2}%
-      </div>
-    </div>
-    ${_stateBox('LS3 — Mischluft', sM, 'wrg-state-title--grn', '')}
-    <div class="wrg-balance wrg-balance--grn">
-      <div class="wrg-balance-title wrg-balance-title--grn">Mischungsbilanz</div>
-      <div class="wrg-balance-row wrg-balance-row--lg">
-        ṁ₁ = ${_fmt(m1,0)} kg/h + ṁ₂ = ${_fmt(m2,0)} kg/h = <strong class="wrg-balance-strong">${_fmt(mM,0)} kg/h</strong>
-      </div>
-      <div class="wrg-balance-row">
-        V̇₁ = ${_fmt(vol1,0)} m³/h + V̇₂ = ${_fmt(vol2,0)} m³/h = <strong class="wrg-balance-strong">${_fmt(volM,0)} m³/h</strong>
-      </div>
-    </div>`;
+  el.innerHTML = `<p style="color:var(--grn);font-size:13px">Mischung: ${volM.toFixed(1)} m³/h</p>`;
 }
 
-/* ─── EVENTS + INIT ─── */
 document.addEventListener('DOMContentLoaded', () => {
-  // ± Sign-Button Außenluft
-  _$('btn-wrg-sign')?.addEventListener('click', () => wrgToggleSign('wrg-au-t'));
-
-  // WRG Eingaben
   ['wrg-ab-t','wrg-ab-phi','wrg-au-t','wrg-au-phi','wrg-eta'].forEach(id => {
-    _$(id)?.addEventListener('input',  calcWRG);
-    _$(id)?.addEventListener('change', calcWRG);
+    document.getElementById(id)?.addEventListener('input', calcWRG);
+    document.getElementById(id)?.addEventListener('change', calcWRG);
   });
-
-  // Mischluft Eingaben
-  ['mix-ls1-t','mix-ls1-phi','mix-ls1-vol','mix-ls2-t','mix-ls2-phi','mix-ls2-vol'].forEach(id => {
-    _$(id)?.addEventListener('input',  calcMix);
-    _$(id)?.addEventListener('change', calcMix);
+  ['mix-ls1-t','mix-ls1-vol','mix-ls2-t','mix-ls2-vol'].forEach(id => {
+    document.getElementById(id)?.addEventListener('input', calcMix);
+    document.getElementById(id)?.addEventListener('change', calcMix);
   });
-
-  // Initial
   setTimeout(() => { calcWRG(); calcMix(); }, 100);
 });
