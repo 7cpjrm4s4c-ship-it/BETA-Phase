@@ -614,19 +614,6 @@ body {
   transition:border-color 0.22s, background 0.22s;
 }
 
-.inp {
-  width:100%;
-  font-size:18px;
-  padding:12px 14px;
-  min-height:var(--pill);
-}
-
-.inp-sm {
-  font-size:15px;
-  padding:10px 12px;
-  min-height:40px;
-}
-
 .gl-sel {
   padding:11px 32px 11px 12px;
   font-size:13px;
