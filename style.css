@@ -68,6 +68,34 @@ body {
 
 .hdr-menu-btn span { opacity:0.86; }
 
+/* ─── TAB BAR STYLING ─── */
+.tab-bar {
+  background:rgba(0,0,0,0.3);
+}
+
+.tab-btn {
+  color:var(--t3);
+  transition:color 0.22s ease-out;
+}
+
+.tab-btn:hover { color:var(--t2); }
+
+.tab-btn.active {
+  color:var(--t1);
+  font-weight:600;
+}
+
+/* Tab Indicator Color — follows tab type */
+#tab-flow .tab-btn.active::after { background:var(--heat); }
+#tab-luft .tab-btn.active::after { background:var(--air); }
+#tab-pipe .tab-btn.active::after { background:var(--blue); }
+#tab-unit .tab-btn.active::after { background:var(--grn); }
+#tab-hx .tab-btn.active::after { background:var(--blue); }
+#tab-wrg .tab-btn.active::after { background:var(--air); }
+#tab-trinkwasser .tab-btn.active::after { background:var(--blue); }
+#tab-mag .tab-btn.active::after { background:var(--blue); }
+#tab-entwaesserung .tab-btn.active::after { background:var(--grn); }
+
 /* ═══════════════════════════════════════════════════════════════════════════════
    CARDS & CONTAINERS
 ═══════════════════════════════════════════════════════════════════════════════ */

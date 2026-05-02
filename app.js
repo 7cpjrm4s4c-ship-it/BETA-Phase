@@ -33,7 +33,7 @@ function initRouter() {
   tabs.forEach(tab => {
     tab.addEventListener('click', (e) => {
       e.preventDefault();
-      const tabId = tab.dataset.tab;
+      const tabId = 'tab-' + tab.dataset.tab;  // ← FIX: Füge tab- prefix hinzu
       
       // Deactivate all
       tabs.forEach(t => t.classList.remove('active'));
@@ -48,7 +48,7 @@ function initRouter() {
   // Activate first tab
   if (tabs.length > 0) {
     tabs[0].classList.add('active');
-    const firstPanel = $(tabs[0].dataset.tab);
+    const firstPanel = $('tab-' + tabs[0].dataset.tab);  // ← FIX: Füge tab- prefix hinzu
     if (firstPanel) firstPanel.classList.add('is-active');
   }
 }

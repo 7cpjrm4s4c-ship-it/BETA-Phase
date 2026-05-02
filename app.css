@@ -16,36 +16,6 @@
 .tab-panel { display:none; }
 .tab-panel.is-active { display:flex; }
 
-/* Tab Buttons */
-.tab-btn {
-  position:relative;
-  display:flex;
-  flex-direction:column;
-  align-items:center;
-  justify-content:center;
-  gap:4px;
-  padding:8px 12px;
-  min-width:60px;
-  font-size:11px;
-  font-weight:700;
-  text-transform:uppercase;
-  letter-spacing:0.08em;
-  transition:all 0.22s;
-}
-
-.tab-btn::after {
-  content:'';
-  position:absolute;
-  bottom:0;
-  left:0;
-  right:0;
-  height:2px;
-  background:transparent;
-  transition:background 0.22s;
-}
-
-.tab-btn.active::after { background:currentColor; }
-
 /* Tab Icon */
 .tab-icon {
   font-size:20px;
